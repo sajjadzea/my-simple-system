@@ -71,78 +71,46 @@ d3.json("data.json").then(function(graph) {
     .attr("y", 5)
     .text(d => d.label);
 
-  // Tooltip ساده (فقط توضیح کوتاه برای گره‌ها/یال‌ها)
-  const tooltip = d3.select("body").append("div")
-    .attr("class", "tooltip")
-    .style("position", "absolute")
-    .style("background", "#fff")
-    .style("border", "1.5px solid #bbb")
-    .style("padding", "12px 18px")
-    .style("border-radius", "10px")
-    .style("font-size", "15px")
-    .style("box-shadow", "0 4px 14px #ccc")
-    .style("pointer-events", "none")
-    .style("max-width", "340px")
-    .style("visibility", "hidden");
+  // ==== Tooltip مدیریتی بالا ====
+  const managerTooltip = d3.select("#manager-tooltip");
+  let hideTooltipTimeout = null;
 
-  // گره‌ها: نمایش توضیح در Tooltip
+  function showManagerTooltip(content) {
+    managerTooltip.html(content).style("display", "block");
+    clearTimeout(hideTooltipTimeout);
+  }
+  function hideManagerTooltip() {
+    hideTooltipTimeout = setTimeout(() => managerTooltip.style("display", "none"), 380);
+  }
+
+  // هاور روی گره‌ها
   node.on("mouseover", function(event, d) {
-      tooltip.style("visibility", "visible")
-        .html(
-          `<div style='font-weight:bold;color:#148;'>${d.label}</div>` +
-          (d.description ? `<div style='margin:6px 0;color:#333;'>${d.description}</div>` : "") +
-          (d.source ? `<div style='margin-top:8px;font-size:13px;color:#888;'>${d.source}</div>` : "")
-        );
-    })
-    .on("mousemove", function(event) {
-      tooltip.style("top", (event.pageY + 12) + "px")
-             .style("left", (event.pageX + 16) + "px");
-    })
-    .on("mouseout", function() {
-      tooltip.style("visibility", "hidden");
-    })
-    .on("click", function(event, d) {
-      d3.select("#info-panel").style("display", "block");
-      d3.select("#panel-content").html(
-        `<div style='font-weight:bold;color:#287d62;font-size:19px;margin-bottom:9px;'>${d.label}</div>` +
-        (d.description ? `<div style='color:#444;font-size:15px;margin-bottom:7px;'>${d.description}</div>` : "") +
-        (d.source ? `<div style='font-size:13px;color:#666;'>${d.source}</div>` : "")
+      showManagerTooltip(
+        `<div class='title'>${d.label}</div>` +
+        (d.description ? `<div style='margin:4px 0 9px 0;color:#356;'>${d.description}</div>` : "")
       );
-      event.stopPropagation();
-    });
+    })
+    .on("mouseout", hideManagerTooltip)
+    .on("mousemove", function(event) { managerTooltip.style("top", "14px").style("left", "50%"); });
 
-  // یال‌ها: نمایش توضیح در Tooltip
+  // هاور روی یال‌ها
   link.on("mouseover", function(event, d) {
-      tooltip.style("visibility", "visible")
-        .html(
-          `<div style='font-weight:bold;color:#148;'>${d.label || (d.type === "+" ? "اثر مثبت" : "اثر منفی")}</div>`
-        );
-    })
-    .on("mousemove", function(event) {
-      tooltip.style("top", (event.pageY + 10) + "px").style("left", (event.pageX + 12) + "px");
-    })
-    .on("mouseout", function() { tooltip.style("visibility", "hidden"); })
-    .on("click", function(event, d) {
-      d3.select("#info-panel").style("display", "block");
-      d3.select("#panel-content").html(
-        `<div style='font-weight:bold;color:#9a8e3d;font-size:18px;margin-bottom:8px;'>${d.label || 'رابطه'}</div>` +
-        (d.references && d.references.length
-          ? `<table><thead>
-          <tr><th>عنوان</th><th>چرایی</th><th>لینک</th></tr></thead><tbody>` +
-          d.references.map(r =>
-            `<tr>
-              <td style='vertical-align:top;'>${r.title || '—'}</td>
-              <td style='vertical-align:top;color:#865;'>${r.why || '—'}</td>
-              <td style='vertical-align:top;'><a href='${r.url}' target='_blank'>مشاهده</a></td>
-            </tr>`
-          ).join('') + `</tbody></table>` : "<div style='color:#987;'>منبع مستند ندارد.</div>")
+      showManagerTooltip(
+        `<div class='title'>${d.label || (d.type === "+" ? "اثر مثبت" : "اثر منفی")}</div>` +
+        (d.references && d.references.length ?
+        `<table><thead><tr><th>عنوان</th><th>چرایی</th><th>لینک</th></tr></thead><tbody>`+
+        d.references.map(r =>
+          `<tr>
+            <td>${r.title||"—"}</td>
+            <td>${r.why||"—"}</td>
+            <td><a href='${r.url}' target='_blank'>مشاهده</a></td>
+          </tr>`
+        ).join('')+
+        `</tbody></table>` : "<div style='color:#987;'>منبع مستند ندارد.</div>")
       );
-      event.stopPropagation();
-    });
-
-  d3.select("body").on("click", function() {
-    d3.select("#info-panel").style("display", "none");
-  });
+    })
+    .on("mouseout", hideManagerTooltip)
+    .on("mousemove", function(event) { managerTooltip.style("top", "14px").style("left", "50%"); });
 
   simulation.on("tick", () => {
     link
@@ -150,23 +118,43 @@ d3.json("data.json").then(function(graph) {
       .attr("y1", d => d.source.y)
       .attr("x2", d => d.target.x)
       .attr("y2", d => d.target.y);
-
     node
       .attr("transform", d => `translate(${d.x},${d.y})`);
   });
 
   function dragstarted(event, d) {
     if (!event.active) simulation.alphaTarget(0.3).restart();
-    d.fx = d.x;
-    d.fy = d.y;
+    d.fx = d.x; d.fy = d.y;
   }
   function dragged(event, d) {
-    d.fx = event.x;
-    d.fy = event.y;
+    d.fx = event.x; d.fy = event.y;
   }
   function dragended(event, d) {
-    if (!event.active) simulation.alphaTarget(0);
-    d.fx = null;
-    d.fy = null;
+    if (!event.active) simulation.alphaTarget(0); d.fx = null; d.fy = null;
   }
+
+  // ==== جدول ثابت خلاصه ====  (فقط روابط؛ قابل توسعه به گره‌ها)
+  function renderSideTable(filterValue="") {
+    let filtered = graph.links;
+    if (filterValue && filterValue.length>1)
+      filtered = filtered.filter(d =>
+        (d.label && d.label.includes(filterValue)) ||
+        (d.references && d.references.some(r =>
+          (r.title && r.title.includes(filterValue)) || (r.why && r.why.includes(filterValue)) ))
+      );
+    d3.select("#side-table-content").html(
+      `<table><thead><tr><th>رابطه</th><th>چرایی/دلیل</th><th>لینک</th></tr></thead><tbody>`+
+      filtered.map(d =>
+        `<tr style='background:#fff;cursor:pointer;' onmouseover='document.getElementById("manager-tooltip").innerHTML = `<div class=\'title\'>${d.label}</div>${(d.references && d.references.length ? `<table><tr><th>عنوان</th><th>چرایی</th><th>لینک</th></tr>`+d.references.map(r=>`<tr><td>${r.title||"—"}</td><td>${r.why||"—"}</td><td><a href=\'${r.url}\' target=\'_blank\'>مشاهده</a></td></tr>`).join('')+`</table>` : "")}`;document.getElementById("manager-tooltip").style.display = "block";' onmouseout='document.getElementById("manager-tooltip").style.display = "none";'>
+          <td>${d.label||"—"}</td>
+          <td>${(d.references && d.references[0] && d.references[0].why) ? d.references[0].why : "—"}</td>
+          <td>${(d.references && d.references[0] && d.references[0].url) ? `<a href='${d.references[0].url}' target='_blank'>مشاهده</a>` : "—"}</td>
+        </tr>`
+      ).join('')+`</tbody></table>`
+    );
+  }
+
+  renderSideTable();
+  d3.select("#side-table-search").on("input", function() { renderSideTable(this.value.trim()); });
+
 });
