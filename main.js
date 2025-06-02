@@ -1,160 +1,114 @@
-// main.js (نسخه بدون ارور و سازگار با data.json)
+// main.js نسخه ویرایش‌شده: گراف با Drag & Drop انیمیشنی و ظاهر مدرن
 
-d3.json("data.json").then(function(graph) {
-    // اندازه SVG و پارامترهای Force
-    const width = window.innerWidth * 0.9;
-    const height = window.innerHeight * 0.85;
+fetch('data.json')
+  .then(response => response.json())
+  .then(graph => {
+    // ابعاد SVG
+    const width = window.innerWidth;
+    const height = window.innerHeight;
 
-    const svg = d3.select("#graph")
-        .append("svg")
-        .attr("width", width)
-        .attr("height", height)
-        .style("background", "#f7f7fb");
+    // SVG
+    const svg = d3.select('body').append('svg')
+      .attr('width', width)
+      .attr('height', height)
+      .style('background', '#f7f8fc');
 
-    // تعریف force layout
+    // گرادیان زیبا برای دایره گره‌ها
+    svg.append('defs').append('radialGradient')
+      .attr('id', 'grad1')
+      .attr('cx', '50%').attr('cy', '50%').attr('r', '60%')
+      .selectAll('stop')
+      .data([
+        { offset: '0%', color: '#fff' },
+        { offset: '100%', color: '#e0eeff' }
+      ])
+      .enter().append('stop')
+      .attr('offset', d => d.offset)
+      .attr('stop-color', d => d.color);
+
+    // رنگ یال‌ها بر اساس نوع
+    function edgeColor(type) {
+      return type === '+' ? '#4ad991' : '#e85454';
+    }
+
+    // Force Simulation
     const simulation = d3.forceSimulation(graph.nodes)
-        .force("link", d3.forceLink(graph.links).id(d => d.id).distance(210))
-        .force("charge", d3.forceManyBody().strength(-950))
-        .force("center", d3.forceCenter(width / 2, height / 2))
-        .force("collide", d3.forceCollide(65));
+      .force('link', d3.forceLink(graph.links).id(d => d.id).distance(180))
+      .force('charge', d3.forceManyBody().strength(-650))
+      .force('center', d3.forceCenter(width * 0.6, height / 2));
 
-    // رنگ و استایل یال‌ها
-    function linkColor(type) {
-        return type === "+" ? "#1aae1a" : "#d84343";
-    }
-    function linkDash(type) {
-        return type === "+" ? "5,0" : "6,3";
-    }
+    // رسم یال‌ها
+    const link = svg.append('g')
+      .attr('stroke-width', 3)
+      .selectAll('line')
+      .data(graph.links)
+      .enter().append('line')
+      .attr('stroke', d => edgeColor(d.type))
+      .attr('stroke-dasharray', d => d.type === '+' ? '' : '6,6');
 
-    // یال‌ها
-    const link = svg.append("g")
-        .selectAll("line")
-        .data(graph.links)
-        .enter().append("line")
-        .attr("stroke", d => linkColor(d.type))
-        .attr("stroke-width", 3)
-        .attr("stroke-dasharray", d => linkDash(d.type))
-        .attr("marker-end", "url(#arrow)");
+    // رسم گره‌ها
+    const node = svg.append('g')
+      .selectAll('g.node')
+      .data(graph.nodes)
+      .enter().append('g')
+      .attr('class', 'node')
+      .call(drag(simulation));
 
-    // فلش انتهای یال
-    svg.append("defs").append("marker")
-        .attr("id", "arrow")
-        .attr("viewBox", "0 -5 10 10")
-        .attr("refX", 26)
-        .attr("refY", 0)
-        .attr("markerWidth", 7)
-        .attr("markerHeight", 7)
-        .attr("orient", "auto")
-        .append("path")
-        .attr("d", "M0,-5L10,0L0,5")
-        .attr("fill", "#888");
+    node.append('circle')
+      .attr('r', 32)
+      .attr('fill', 'url(#grad1)')
+      .attr('stroke', '#3f51b5')
+      .attr('stroke-width', 1.5)
+      .style('filter', 'drop-shadow(0 4px 8px #b9d0f7c0)');
 
-    // گره‌ها
-    const node = svg.append("g")
-        .selectAll("g")
-        .data(graph.nodes)
-        .enter().append("g")
-        .attr("class", "node");
+    node.append('text')
+      .text(d => d.label)
+      .attr('text-anchor', 'middle')
+      .attr('dy', 5)
+      .style('font-family', 'Vazirmatn, IRANSans, Tahoma')
+      .style('font-size', '14px')
+      .style('fill', '#222');
 
-    node.append("circle")
-        .attr("r", 38)
-        .attr("fill", "#ddd")
-        .attr("stroke", "#555")
-        .attr("stroke-width", 2);
+    simulation.on('tick', () => {
+      link
+        .attr('x1', d => d.source.x)
+        .attr('y1', d => d.source.y)
+        .attr('x2', d => d.target.x)
+        .attr('y2', d => d.target.y);
 
-    node.append("text")
-        .text(d => d.label)
-        .attr("text-anchor", "middle")
-        .attr("dy", "0.35em")
-        .style("font-size", "15px");
-
-    // برچسب یال‌ها
-    const linkLabel = svg.append("g")
-        .selectAll("text")
-        .data(graph.links)
-        .enter().append("text")
-        .attr("class", "link-label")
-        .attr("text-anchor", "middle")
-        .style("font-size", "13px")
-        .text(d => d.label);
-
-    // Tooltip مدیریتی
-    const tooltip = d3.select("body").append("div")
-        .attr("class", "custom-tooltip")
-        .style("position", "fixed")
-        .style("top", "15px")
-        .style("right", "30px")
-        .style("z-index", "1000")
-        .style("min-width", "350px")
-        .style("max-width", "500px")
-        .style("direction", "rtl")
-        .style("background", "#fff")
-        .style("box-shadow", "0 2px 10px #aaa5")
-        .style("border-radius", "14px")
-        .style("padding", "18px 16px 14px 18px")
-        .style("border", "1.5px solid #ddd")
-        .style("display", "none");
-
-    function showTooltip(html) {
-        tooltip.html(html).style("display", "block");
-    }
-    function hideTooltip() {
-        tooltip.style("display", "none");
-    }
-
-    // رویدادهای گره
-    node.on("mouseenter", function(e, d) {
-        let html = `<b style='color:#555'>${d.label}</b><br>${d.description ? d.description : ''}`;
-        showTooltip(html);
-    })
-    .on("mouseleave", hideTooltip);
-
-    // رویدادهای یال (و نمایش منابع)
-    link.on("mouseenter", function(e, d) {
-        let refs = (d.references && d.references.length) ? d.references.map(r => `<li><a href='${r.url}' target='_blank' style='color:#007bb5'>${r.title}</a><br><span style='color:#888;font-size:12px'>${r.why ? r.why : ''}</span></li>`).join("") : "<i>بدون منبع</i>";
-        let html = `<b style='color:#333'>${d.label}</b><ul style='padding-right:16px'>${refs}</ul>`;
-        showTooltip(html);
-    })
-    .on("mouseleave", hideTooltip);
-
-    // Force Simulation tick
-    simulation.on("tick", () => {
-        link.attr("x1", d => d.source.x)
-            .attr("y1", d => d.source.y)
-            .attr("x2", d => d.target.x)
-            .attr("y2", d => d.target.y);
-        node.attr("transform", d => `translate(${d.x},${d.y})`);
-        linkLabel.attr("x", d => (d.source.x + d.target.x) / 2)
-            .attr("y", d => (d.source.y + d.target.y) / 2 - 10);
+      node
+        .attr('transform', d => `translate(${d.x},${d.y})`);
     });
 
-    // زوم (Zoom)
-    svg.call(
-        d3.zoom()
-            .scaleExtent([0.3, 2.5])
-            .on("zoom", function (event) {
-                svg.selectAll('g').attr("transform", event.transform);
-            })
-    );
-
-    // جدول مدیریتی کناری (Side Table)
-    const sidebox = d3.select("body").append("div")
-        .attr("class", "sidebox")
-        .style("position", "fixed")
-        .style("top", "55px")
-        .style("left", "40px")
-        .style("width", "320px")
-        .style("background", "#fafbff")
-        .style("box-shadow", "0 1px 10px #ccc5")
-        .style("border-radius", "10px")
-        .style("padding", "14px 10px 8px 10px")
-        .style("font-size", "14px")
-        .style("z-index", "999")
-        .html(`<b style='color:#214'>جدول منابع و روابط:</b><table style='width:100%;margin-top:12px;text-align:right'><thead><tr style='color:#888;background:#f5f5f5'><th>یال</th><th>چرایی</th><th>منبع</th></tr></thead><tbody>` +
-            graph.links.map(l => `<tr style='border-bottom:1px solid #eee'>`
-                + `<td style='vertical-align:top'>${l.label}</td>`
-                + `<td style='font-size:13px;color:#666;vertical-align:top'>${(l.references && l.references[0] && l.references[0].why) ? l.references[0].why : ''}</td>`
-                + `<td style='vertical-align:top'>${(l.references && l.references.length) ? l.references.map(r => `<a href='${r.url}' target='_blank' style='color:#007bb5'>${r.title}</a>`).join('<br>') : ''}</td>`
-                + `</tr>`).join('')
-            + '</tbody></table>');
-});
+    // تابع Drag با افکت سایه و انیمیشن
+    function drag(simulation) {
+      function dragstarted(event, d) {
+        if (!event.active) simulation.alphaTarget(0.3).restart();
+        d.fx = d.x;
+        d.fy = d.y;
+        d3.select(this).select('circle')
+          .transition()
+          .duration(180)
+          .attr('r', 38)
+          .style('filter', 'drop-shadow(0 8px 20px #8bb7f6c8)');
+      }
+      function dragged(event, d) {
+        d.fx = event.x;
+        d.fy = event.y;
+      }
+      function dragended(event, d) {
+        if (!event.active) simulation.alphaTarget(0);
+        d.fx = null;
+        d.fy = null;
+        d3.select(this).select('circle')
+          .transition()
+          .duration(180)
+          .attr('r', 32)
+          .style('filter', 'drop-shadow(0 4px 8px #b9d0f7c0)');
+      }
+      return d3.drag()
+        .on('start', dragstarted)
+        .on('drag', dragged)
+        .on('end', dragended);
+    }
+  });
