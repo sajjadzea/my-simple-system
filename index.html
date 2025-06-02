@@ -1,12 +1,12 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="fa">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
+    <title>System Diagram D3.js</title>
     <script src="https://d3js.org/d3.v7.min.js"></script>
     <style>
-        body { direction: rtl; }
+        body { direction: rtl; background: #fafaff; }
         .node circle { fill: #f7f7f7; stroke: #888; stroke-width: 2.3px; }
         .label { font-size: 15px; font-family: Tahoma, sans-serif; pointer-events: none; }
         .link { stroke-width: 3px; }
@@ -17,6 +17,14 @@
 </head>
 <body>
     <svg id="diagram" width="1100" height="700"></svg>
+
+    <!-- کلید راهنما (Legend) -->
+    <div id="legend" style="margin:20px 0 0 40px; font-family:Tahoma,sans-serif;">
+      <span style="display:inline-block;width:32px;height:6px;background:#1aaf5d;margin-left:5px;vertical-align:middle;"></span> یال مثبت (اثر افزاینده)
+      &nbsp;&nbsp;
+      <span style="display:inline-block;width:32px;height:6px;background:#e14646;border-bottom:3px dashed #e14646;margin-left:5px;vertical-align:middle;"></span> یال منفی (اثر کاهنده)
+    </div>
+
     <script src="main.js"></script>
 </body>
 </html>
