@@ -101,7 +101,6 @@ d3.json("data.json").then(function(graph) {
     .on("mouseout", function() {
       tooltip.style("visibility", "hidden");
     })
-    // نمایش منابع گره در پنل کناری با کلیک
     .on("click", function(event, d) {
       d3.select("#info-panel").style("display", "block");
       d3.select("#panel-content").html(
@@ -123,7 +122,6 @@ d3.json("data.json").then(function(graph) {
       tooltip.style("top", (event.pageY + 10) + "px").style("left", (event.pageX + 12) + "px");
     })
     .on("mouseout", function() { tooltip.style("visibility", "hidden"); })
-    // نمایش منابع یال در پنل کناری با کلیک
     .on("click", function(event, d) {
       d3.select("#info-panel").style("display", "block");
       d3.select("#panel-content").html(
@@ -142,7 +140,6 @@ d3.json("data.json").then(function(graph) {
       event.stopPropagation();
     });
 
-  // بستن پنل با کلیک فضای خالی
   d3.select("body").on("click", function() {
     d3.select("#info-panel").style("display", "none");
   });
@@ -158,7 +155,6 @@ d3.json("data.json").then(function(graph) {
       .attr("transform", d => `translate(${d.x},${d.y})`);
   });
 
-  // Drag
   function dragstarted(event, d) {
     if (!event.active) simulation.alphaTarget(0.3).restart();
     d.fx = d.x;
