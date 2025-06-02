@@ -1,20 +1,22 @@
 <!DOCTYPE html>
-<html lang="fa">
+<html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>نمودار سیستمی با D3.js</title>
-  <script src="https://d3js.org/d3.v7.min.js"></script>
-  <style>
-    body { direction: rtl; }
-    .node circle { fill: #bbb; stroke: #888; stroke-width: 2px; }
-    .link { stroke-width: 2.5px; }
-    .link.positive { stroke: #7be89b; }
-    .link.negative { stroke: #e39b9b; stroke-dasharray: 6 4; }
-    .label { font-size: 14px; font-family: sans-serif; }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <script src="https://d3js.org/d3.v7.min.js"></script>
+    <style>
+        body { direction: rtl; }
+        .node circle { fill: #f7f7f7; stroke: #888; stroke-width: 2.3px; }
+        .label { font-size: 15px; font-family: Tahoma, sans-serif; pointer-events: none; }
+        .link { stroke-width: 3px; }
+        .link.positive { stroke: #1aaf5d; }
+        .link.negative { stroke: #e14646; stroke-dasharray: 8 5; }
+        .tooltip { position: absolute; background: #fff; border: 1.5px solid #bbb; padding: 8px 15px; border-radius: 7px; font-size: 14px; box-shadow: 0 4px 14px #ccc; pointer-events: none; visibility: hidden; }
+    </style>
 </head>
 <body>
-  <svg id="diagram" width="1200" height="750"></svg>
-  <script src="main.js"></script>
+    <svg id="diagram" width="1100" height="700"></svg>
+    <script src="main.js"></script>
 </body>
 </html>
