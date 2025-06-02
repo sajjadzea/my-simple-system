@@ -6,25 +6,36 @@
     <title>System Diagram D3.js</title>
     <script src="https://d3js.org/d3.v7.min.js"></script>
     <style>
-        body { direction: rtl; background: #fafaff; }
+        body { direction: rtl; background: #fafaff; font-family: Tahoma,sans-serif;}
         .summary-box {
             margin: 28px 0 24px 0;
             padding: 22px 32px 20px 24px;
             background: #f0f3fa;
             border-radius: 17px;
             border: 1.3px solid #d7e3f7;
-            font-family: Tahoma,sans-serif;
             font-size: 18px;
             color: #20406a;
             max-width: 740px;
             box-shadow: 0 4px 20px #dde8ff55;
         }
         .node circle { fill: #f7f7f7; stroke: #888; stroke-width: 2.3px; }
-        .label { font-size: 15px; font-family: Tahoma, sans-serif; pointer-events: none; }
+        .label { font-size: 15px; pointer-events: none; }
         .link { stroke-width: 3px; }
         .link.positive { stroke: #1aaf5d; }
         .link.negative { stroke: #e14646; stroke-dasharray: 8 5; }
         .tooltip { position: absolute; background: #fff; border: 1.5px solid #bbb; padding: 8px 15px; border-radius: 7px; font-size: 14px; box-shadow: 0 4px 14px #ccc; pointer-events: none; visibility: hidden; }
+        /* پنل کناری */
+        #info-panel {
+          position:fixed;top:40px;right:24px;width:360px;
+          background:#fffbe7;border-radius:15px;
+          border:1.7px solid #d4c98c;padding:24px 18px;
+          box-shadow:0 8px 24px #ccbe8c50;z-index:9;display:none;
+          font-family:Tahoma;
+        }
+        #info-panel table {border-collapse: collapse; width: 100%;margin-top: 8px;}
+        #info-panel th, #info-panel td {border-bottom: 1px solid #eee; padding: 6px 3px;}
+        #info-panel th {background: #f3eecf; color: #8e812f; font-weight: bold;}
+        #info-panel td a { color:#2196f3; text-decoration: underline; }
     </style>
 </head>
 <body>
@@ -36,11 +47,13 @@
     <svg id="diagram" width="1100" height="700"></svg>
 
     <!-- کلید راهنما (Legend) -->
-    <div id="legend" style="margin:20px 0 0 40px; font-family:Tahoma,sans-serif;">
+    <div id="legend" style="margin:20px 0 0 40px;">
       <span style="display:inline-block;width:32px;height:6px;background:#1aaf5d;margin-left:5px;vertical-align:middle;"></span> یال مثبت (اثر افزاینده)
       &nbsp;&nbsp;
       <span style="display:inline-block;width:32px;height:6px;background:#e14646;border-bottom:3px dashed #e14646;margin-left:5px;vertical-align:middle;"></span> یال منفی (اثر کاهنده)
     </div>
+    <!-- پنل کناری اطلاعات -->
+    <div id="info-panel"><div id="panel-content"></div></div>
 
     <script src="main.js"></script>
 </body>
