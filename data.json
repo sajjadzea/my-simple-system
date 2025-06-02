@@ -1,0 +1,11 @@
+{
+  "nodes": [
+    { "id": "rainfall", "label": "کاهش بارش" },
+    { "id": "ab_kalat", "label": "موجودی آب کلات" },
+    { "id": "ab_transfer", "label": "برداشت آب برای انتقال" }
+  ],
+  "links": [
+    { "source": "rainfall", "target": "ab_kalat", "type": "positive" },
+    { "source": "ab_kalat", "target": "ab_transfer", "type": "negative" }
+  ]
+}

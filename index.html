@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html lang="fa">
+<head>
+  <meta charset="UTF-8">
+  <title>نمودار سیستمی با D3.js</title>
+  <script src="https://d3js.org/d3.v7.min.js"></script>
+  <style>
+    body { direction: rtl; }
+    .node circle { fill: #bbb; stroke: #888; stroke-width: 2px; }
+    .link { stroke-width: 2.5px; }
+    .link.positive { stroke: #7be89b; }
+    .link.negative { stroke: #e39b9b; stroke-dasharray: 6 4; }
+    .label { font-size: 14px; font-family: sans-serif; }
+  </style>
+</head>
+<body>
+  <svg id="diagram" width="1200" height="750"></svg>
+  <script src="main.js"></script>
+</body>
+</html>
