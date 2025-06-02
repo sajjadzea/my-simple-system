@@ -1,4 +1,4 @@
-// main.js - نسخه کاملاً اصلاح‌شده، سازگار با data.json و بدون SyntaxError
+// main.js (نسخه بدون ارور و سازگار با data.json)
 
 d3.json("data.json").then(function(graph) {
     // اندازه SVG و پارامترهای Force
@@ -104,14 +104,14 @@ d3.json("data.json").then(function(graph) {
 
     // رویدادهای گره
     node.on("mouseenter", function(e, d) {
-        let html = `<b style='color:#555'>${d.label}</b><br>${d.description ?? ''}`;
+        let html = `<b style='color:#555'>${d.label}</b><br>${d.description ? d.description : ''}`;
         showTooltip(html);
     })
     .on("mouseleave", hideTooltip);
 
     // رویدادهای یال (و نمایش منابع)
     link.on("mouseenter", function(e, d) {
-        let refs = d.references && d.references.length ? d.references.map(r => `<li><a href='${r.url}' target='_blank' style='color:#007bb5'>${r.title}</a><br><span style='color:#888;font-size:12px'>${r.why ?? ''}</span></li>`).join("") : "<i>بدون منبع</i>";
+        let refs = (d.references && d.references.length) ? d.references.map(r => `<li><a href='${r.url}' target='_blank' style='color:#007bb5'>${r.title}</a><br><span style='color:#888;font-size:12px'>${r.why ? r.why : ''}</span></li>`).join("") : "<i>بدون منبع</i>";
         let html = `<b style='color:#333'>${d.label}</b><ul style='padding-right:16px'>${refs}</ul>`;
         showTooltip(html);
     })
@@ -150,10 +150,11 @@ d3.json("data.json").then(function(graph) {
         .style("padding", "14px 10px 8px 10px")
         .style("font-size", "14px")
         .style("z-index", "999")
-        .html(`<b style='color:#214'>جدول منابع و روابط:</b><table style='width:100%;margin-top:12px;text-align:right'><thead><tr style='color:#888;background:#f5f5f5'><th>یال</th><th>چرایی</th><th>منبع</th></tr></thead><tbody>$
-            {graph.links.map(l => `<tr style='border-bottom:1px solid #eee'>
-                <td style='vertical-align:top'>${l.label}</td>
-                <td style='font-size:13px;color:#666;vertical-align:top'>${(l.references && l.references[0]?.why) || ''}</td>
-                <td style='vertical-align:top'>${l.references && l.references.length ? l.references.map(r => `<a href='${r.url}' target='_blank' style='color:#007bb5'>${r.title}</a>`).join("<br>") : ''}</td>
-            </tr>`).join('')}</tbody></table>`);
+        .html(`<b style='color:#214'>جدول منابع و روابط:</b><table style='width:100%;margin-top:12px;text-align:right'><thead><tr style='color:#888;background:#f5f5f5'><th>یال</th><th>چرایی</th><th>منبع</th></tr></thead><tbody>` +
+            graph.links.map(l => `<tr style='border-bottom:1px solid #eee'>`
+                + `<td style='vertical-align:top'>${l.label}</td>`
+                + `<td style='font-size:13px;color:#666;vertical-align:top'>${(l.references && l.references[0] && l.references[0].why) ? l.references[0].why : ''}</td>`
+                + `<td style='vertical-align:top'>${(l.references && l.references.length) ? l.references.map(r => `<a href='${r.url}' target='_blank' style='color:#007bb5'>${r.title}</a>`).join('<br>') : ''}</td>`
+                + `</tr>`).join('')
+            + '</tbody></table>');
 });
