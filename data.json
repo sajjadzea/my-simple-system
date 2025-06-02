@@ -1,10 +1,16 @@
-{
-  "nodes": [
-    { "id": "rainfall", "label": "کاهش بارش", "description": "توضیح...", "source": "مرجع..." },
-    ...
+// به جای d3.json("data.json").then(function(graph) { ... });
+// این رو بزن:
+const graph = {
+  nodes: [
+    { id: "rainfall", label: "کاهش بارش" },
+    { id: "ab_kalat", label: "موجودی آب کلات" },
+    { id: "ab_transfer", label: "برداشت آب برای انتقال" }
   ],
-  "links": [
-    { "source": "rainfall", "target": "ab_kalat", "type": "+", "label": "تأثیر مثبت" },
-    ...
+  links: [
+    { source: "rainfall", target: "ab_kalat", type: "positive" },
+    { source: "ab_kalat", target: "ab_transfer", type: "negative" }
   ]
-}
+};
+// بقیه کد D3 مثل قبله، فقط تابع رو با این دیتا اجرا کن
+// یعنی:
+// mainD3(graph)
