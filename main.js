@@ -1,9 +1,22 @@
-// main.js - نسخه حرفه‌ای با Tooltip پیشرفته و legend
+// main.js - نسخه با Zoom & Pan و tooltip حرفه‌ای
 
 d3.json("data.json").then(function(graph) {
   const svg = d3.select("#diagram"),
         width = +svg.attr("width"),
         height = +svg.attr("height");
+
+  // گروه کلی برای Zoom & Pan
+  const container = svg.append("g");
+
+  // Zoom behavior
+  svg.call(
+    d3.zoom()
+      .extent([[0, 0], [width, height]])
+      .scaleExtent([0.3, 3])
+      .on("zoom", (event) => {
+        container.attr("transform", event.transform);
+      })
+  );
 
   // فلش سر یال (marker)
   svg.append("defs").selectAll("marker")
@@ -27,7 +40,7 @@ d3.json("data.json").then(function(graph) {
     .force("center", d3.forceCenter(width/2, height/2));
 
   // یال‌ها
-  const link = svg.append("g")
+  const link = container.append("g")
     .attr("class", "links")
     .selectAll("line")
     .data(graph.links)
@@ -39,7 +52,7 @@ d3.json("data.json").then(function(graph) {
     .attr("marker-end", d => d.type === "+" ? "url(#arrow-positive)" : "url(#arrow-negative)");
 
   // گره‌ها
-  const node = svg.append("g")
+  const node = container.append("g")
     .attr("class", "nodes")
     .selectAll("g")
     .data(graph.nodes)
