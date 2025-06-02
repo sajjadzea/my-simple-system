@@ -1,14 +1,10 @@
-// main.js - نسخه با Zoom & Pan و tooltip حرفه‌ای
-
 d3.json("data.json").then(function(graph) {
   const svg = d3.select("#diagram"),
         width = +svg.attr("width"),
         height = +svg.attr("height");
 
-  // گروه کلی برای Zoom & Pan
+  // Zoom & Pan
   const container = svg.append("g");
-
-  // Zoom behavior
   svg.call(
     d3.zoom()
       .extent([[0, 0], [width, height]])
@@ -18,7 +14,7 @@ d3.json("data.json").then(function(graph) {
       })
   );
 
-  // فلش سر یال (marker)
+  // Marker
   svg.append("defs").selectAll("marker")
     .data(["positive", "negative"])
     .enter().append("marker")
@@ -33,13 +29,13 @@ d3.json("data.json").then(function(graph) {
     .attr("d", "M0,-5L10,0L0,5")
     .attr("fill", d => d === "positive" ? "#1aaf5d" : "#e14646");
 
-  // نیروها
+  // Force
   const simulation = d3.forceSimulation(graph.nodes)
     .force("link", d3.forceLink(graph.links).id(d => d.id).distance(200))
     .force("charge", d3.forceManyBody().strength(-700))
     .force("center", d3.forceCenter(width/2, height/2));
 
-  // یال‌ها
+  // Links
   const link = container.append("g")
     .attr("class", "links")
     .selectAll("line")
@@ -51,7 +47,7 @@ d3.json("data.json").then(function(graph) {
     .attr("stroke-dasharray", d => d.type === "-" ? "8 5" : null)
     .attr("marker-end", d => d.type === "+" ? "url(#arrow-positive)" : "url(#arrow-negative)");
 
-  // گره‌ها
+  // Nodes
   const node = container.append("g")
     .attr("class", "nodes")
     .selectAll("g")
@@ -75,7 +71,7 @@ d3.json("data.json").then(function(graph) {
     .attr("y", 5)
     .text(d => d.label);
 
-  // Tooltip پیشرفته
+  // Tooltip
   const tooltip = d3.select("body").append("div")
     .attr("class", "tooltip")
     .style("position", "absolute")
@@ -86,10 +82,10 @@ d3.json("data.json").then(function(graph) {
     .style("font-size", "15px")
     .style("box-shadow", "0 4px 14px #ccc")
     .style("pointer-events", "none")
-    .style("max-width", "320px")
+    .style("max-width", "340px")
     .style("visibility", "hidden");
 
-  // گره‌ها: نمایش اطلاعات هنگام هاور
+  // Nodes tooltip
   node.on("mouseover", function(event, d) {
       tooltip.style("visibility", "visible")
         .html(
@@ -106,10 +102,19 @@ d3.json("data.json").then(function(graph) {
       tooltip.style("visibility", "hidden");
     });
 
-  // یال‌ها: نمایش نوع رابطه هنگام هاور
+  // Links tooltip: با رفرنس کلیک‌پذیر
   link.on("mouseover", function(event, d) {
       tooltip.style("visibility", "visible")
-        .html(`<b>رابطه:</b> ${d.label || (d.type === "+" ? "اثر مثبت" : "اثر منفی")}`);
+        .html(
+          `<div style='font-weight:bold;color:#148;'>${d.label || (d.type === "+" ? "اثر مثبت" : "اثر منفی")}</div>` +
+          (d.references && d.references.length
+            ? `<div style='margin-top:10px;'><b>رفرنس‌ها:</b><ul style='margin:5px 0 0 0; padding-right:14px;'>${
+                d.references.map(r =>
+                  `<li style='margin-bottom:3px;'><a href='${r.url}' target='_blank' style='color:#2687e6;text-decoration:underline;'>${r.title || 'لینک'}</a><br><span style='font-size:12px;color:#666;'>${r.why || ''}</span></li>`
+                ).join('')
+              }</ul></div>`
+            : "")
+        );
     })
     .on("mousemove", function(event) {
       tooltip.style("top", (event.pageY + 10) + "px").style("left", (event.pageX + 12) + "px");
