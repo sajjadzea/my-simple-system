@@ -1,150 +1,60 @@
-d3.json("data.json").then(function(graph) {
-  const svg = d3.select("#diagram"),
-        width = +svg.attr("width"),
-        height = +svg.attr("height");
+<!DOCTYPE html>
+<html lang="fa">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>System Diagram D3.js</title>
+    <script src="https://d3js.org/d3.v7.min.js"></script>
+    <style>
+        body { direction: rtl; background: #fafaff; font-family: Tahoma,sans-serif;}
+        .summary-box {
+            margin: 28px 0 24px 0;
+            padding: 22px 32px 20px 24px;
+            background: #f0f3fa;
+            border-radius: 17px;
+            border: 1.3px solid #d7e3f7;
+            font-size: 18px;
+            color: #20406a;
+            max-width: 740px;
+            box-shadow: 0 4px 20px #dde8ff55;
+        }
+        .node circle { fill: #f7f7f7; stroke: #888; stroke-width: 2.3px; }
+        .label { font-size: 15px; pointer-events: none; }
+        .link { stroke-width: 3px; }
+        .link.positive { stroke: #1aaf5d; }
+        .link.negative { stroke: #e14646; stroke-dasharray: 8 5; }
+        .tooltip { position: absolute; background: #fff; border: 1.5px solid #bbb; padding: 8px 15px; border-radius: 7px; font-size: 14px; box-shadow: 0 4px 14px #ccc; pointer-events: none; visibility: hidden; }
+        /* پنل کناری */
+        #info-panel {
+          position:fixed;top:40px;right:24px;width:360px;
+          background:#fffbe7;border-radius:15px;
+          border:1.7px solid #d4c98c;padding:24px 18px;
+          box-shadow:0 8px 24px #ccbe8c50;z-index:9;display:none;
+          font-family:Tahoma;
+        }
+        #info-panel table {border-collapse: collapse; width: 100%;margin-top: 8px;}
+        #info-panel th, #info-panel td {border-bottom: 1px solid #eee; padding: 6px 3px;}
+        #info-panel th {background: #f3eecf; color: #8e812f; font-weight: bold;}
+        #info-panel td a { color:#2196f3; text-decoration: underline; }
+    </style>
+</head>
+<body>
+    <div class="summary-box">
+        <b>خلاصه مدیریتی:</b>
+        این نمودار سیستمی، زنجیره علّی و پیامدهای پروژه انتقال آب از کلات به مشهد را به تصویر می‌کشد.
+        نمودار، نقش عوامل مختلف (از تغییرات اقلیمی و فشار تقاضا تا واکنش‌های اجتماعی و تصمیمات سیاسی) را در بروز چالش یا فرصت برای منابع آب منطقه روشن می‌کند و ابزاری برای تحلیل سیاست‌های بهینه، مدیریت تعارض منافع، و آینده‌نگری تصمیم‌سازان است.
+    </div>
+    <svg id="diagram" width="1100" height="700"></svg>
 
-  // Zoom & Pan
-  const container = svg.append("g");
-  svg.call(
-    d3.zoom()
-      .extent([[0, 0], [width, height]])
-      .scaleExtent([0.3, 3])
-      .on("zoom", (event) => {
-        container.attr("transform", event.transform);
-      })
-  );
+    <!-- کلید راهنما (Legend) -->
+    <div id="legend" style="margin:20px 0 0 40px;">
+      <span style="display:inline-block;width:32px;height:6px;background:#1aaf5d;margin-left:5px;vertical-align:middle;"></span> یال مثبت (اثر افزاینده)
+      &nbsp;&nbsp;
+      <span style="display:inline-block;width:32px;height:6px;background:#e14646;border-bottom:3px dashed #e14646;margin-left:5px;vertical-align:middle;"></span> یال منفی (اثر کاهنده)
+    </div>
+    <!-- پنل کناری اطلاعات -->
+    <div id="info-panel"><div id="panel-content"></div></div>
 
-  // Marker
-  svg.append("defs").selectAll("marker")
-    .data(["positive", "negative"])
-    .enter().append("marker")
-    .attr("id", d => "arrow-"+d)
-    .attr("viewBox", "0 -5 10 10")
-    .attr("refX", 34)
-    .attr("refY", 0)
-    .attr("markerWidth", 8)
-    .attr("markerHeight", 8)
-    .attr("orient", "auto")
-    .append("path")
-    .attr("d", "M0,-5L10,0L0,5")
-    .attr("fill", d => d === "positive" ? "#1aaf5d" : "#e14646");
-
-  // Force
-  const simulation = d3.forceSimulation(graph.nodes)
-    .force("link", d3.forceLink(graph.links).id(d => d.id).distance(200))
-    .force("charge", d3.forceManyBody().strength(-700))
-    .force("center", d3.forceCenter(width/2, height/2));
-
-  // Links
-  const link = container.append("g")
-    .attr("class", "links")
-    .selectAll("line")
-    .data(graph.links)
-    .enter().append("line")
-    .attr("class", d => "link " + (d.type === "+" ? "positive" : "negative"))
-    .attr("stroke", d => d.type === "+" ? "#1aaf5d" : "#e14646")
-    .attr("stroke-width", 3)
-    .attr("stroke-dasharray", d => d.type === "-" ? "8 5" : null)
-    .attr("marker-end", d => d.type === "+" ? "url(#arrow-positive)" : "url(#arrow-negative)");
-
-  // Nodes
-  const node = container.append("g")
-    .attr("class", "nodes")
-    .selectAll("g")
-    .data(graph.nodes)
-    .enter().append("g")
-    .attr("class", "node")
-    .call(d3.drag()
-      .on("start", dragstarted)
-      .on("drag", dragged)
-      .on("end", dragended));
-
-  node.append("circle")
-    .attr("r", 37)
-    .attr("fill", "#f7f7f7")
-    .attr("stroke", "#777")
-    .attr("stroke-width", 2.3);
-
-  node.append("text")
-    .attr("class", "label")
-    .attr("text-anchor", "middle")
-    .attr("y", 5)
-    .text(d => d.label);
-
-  // Tooltip
-  const tooltip = d3.select("body").append("div")
-    .attr("class", "tooltip")
-    .style("position", "absolute")
-    .style("background", "#fff")
-    .style("border", "1.5px solid #bbb")
-    .style("padding", "12px 18px")
-    .style("border-radius", "10px")
-    .style("font-size", "15px")
-    .style("box-shadow", "0 4px 14px #ccc")
-    .style("pointer-events", "none")
-    .style("max-width", "340px")
-    .style("visibility", "hidden");
-
-  // Nodes tooltip
-  node.on("mouseover", function(event, d) {
-      tooltip.style("visibility", "visible")
-        .html(
-          `<div style='font-weight:bold;color:#148;'>${d.label}</div>` +
-          (d.description ? `<div style='margin:6px 0;color:#333;'>${d.description}</div>` : "") +
-          (d.source ? `<div style='margin-top:8px;font-size:13px;color:#888;'>${d.source}</div>` : "")
-        );
-    })
-    .on("mousemove", function(event) {
-      tooltip.style("top", (event.pageY + 12) + "px")
-             .style("left", (event.pageX + 16) + "px");
-    })
-    .on("mouseout", function() {
-      tooltip.style("visibility", "hidden");
-    });
-
-  // Links tooltip: با رفرنس کلیک‌پذیر
-  link.on("mouseover", function(event, d) {
-      tooltip.style("visibility", "visible")
-        .html(
-          `<div style='font-weight:bold;color:#148;'>${d.label || (d.type === "+" ? "اثر مثبت" : "اثر منفی")}</div>` +
-          (d.references && d.references.length
-            ? `<div style='margin-top:10px;'><b>رفرنس‌ها:</b><ul style='margin:5px 0 0 0; padding-right:14px;'>${
-                d.references.map(r =>
-                  `<li style='margin-bottom:3px;'><a href='${r.url}' target='_blank' style='color:#2687e6;text-decoration:underline;'>${r.title || 'لینک'}</a><br><span style='font-size:12px;color:#666;'>${r.why || ''}</span></li>`
-                ).join('')
-              }</ul></div>`
-            : "")
-        );
-    })
-    .on("mousemove", function(event) {
-      tooltip.style("top", (event.pageY + 10) + "px").style("left", (event.pageX + 12) + "px");
-    })
-    .on("mouseout", function() { tooltip.style("visibility", "hidden"); });
-
-  simulation.on("tick", () => {
-    link
-      .attr("x1", d => d.source.x)
-      .attr("y1", d => d.source.y)
-      .attr("x2", d => d.target.x)
-      .attr("y2", d => d.target.y);
-
-    node
-      .attr("transform", d => `translate(${d.x},${d.y})`);
-  });
-
-  // Drag
-  function dragstarted(event, d) {
-    if (!event.active) simulation.alphaTarget(0.3).restart();
-    d.fx = d.x;
-    d.fy = d.y;
-  }
-  function dragged(event, d) {
-    d.fx = event.x;
-    d.fy = event.y;
-  }
-  function dragended(event, d) {
-    if (!event.active) simulation.alphaTarget(0);
-    d.fx = null;
-    d.fy = null;
-  }
-});
+    <script src="main.js"></script>
+</body>
+</html>
