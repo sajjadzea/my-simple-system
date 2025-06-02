@@ -1,9 +1,8 @@
-// main.js نسخه ویرایش‌شده: گراف با Drag & Drop انیمیشنی و ظاهر مدرن
+// main.js نسخه ویرایش‌شده: گراف با Drag & Drop انیمیشنی و ظاهر مدرن + نمایش اطلاعات گره و یال و فلش روی یال‌ها
 
 fetch('data.json')
   .then(response => response.json())
   .then(graph => {
-    // ابعاد SVG
     const width = window.innerWidth;
     const height = window.innerHeight;
 
@@ -26,9 +25,27 @@ fetch('data.json')
       .attr('offset', d => d.offset)
       .attr('stop-color', d => d.color);
 
+    // تعریف فلش یال
+    svg.append('defs').selectAll('marker')
+      .data(['arrowPlus','arrowMinus'])
+      .enter().append('marker')
+      .attr('id', d => d)
+      .attr('viewBox', '0 -5 10 10')
+      .attr('refX', 33)
+      .attr('refY', 0)
+      .attr('markerWidth', 10)
+      .attr('markerHeight', 10)
+      .attr('orient', 'auto')
+      .append('path')
+      .attr('d', 'M0,-5L10,0L0,5')
+      .attr('fill', d => d === 'arrowPlus' ? '#4ad991' : '#e85454');
+
     // رنگ یال‌ها بر اساس نوع
     function edgeColor(type) {
       return type === '+' ? '#4ad991' : '#e85454';
+    }
+    function edgeArrow(type) {
+      return type === '+' ? 'url(#arrowPlus)' : 'url(#arrowMinus)';
     }
 
     // Force Simulation
@@ -44,7 +61,8 @@ fetch('data.json')
       .data(graph.links)
       .enter().append('line')
       .attr('stroke', d => edgeColor(d.type))
-      .attr('stroke-dasharray', d => d.type === '+' ? '' : '6,6');
+      .attr('stroke-dasharray', d => d.type === '+' ? '' : '6,6')
+      .attr('marker-end', d => edgeArrow(d.type));
 
     // رسم گره‌ها
     const node = svg.append('g')
@@ -69,18 +87,58 @@ fetch('data.json')
       .style('font-size', '14px')
       .style('fill', '#222');
 
+    // نمایش توضیحات و لینک منبع روی هاور گره/یال
+    const infoBox = d3.select('body').append('div')
+      .attr('id', 'info-box')
+      .style('position', 'absolute')
+      .style('background', '#fff')
+      .style('border-radius', '15px')
+      .style('box-shadow', '0 6px 24px #b2b6c699')
+      .style('padding', '17px 18px 13px 18px')
+      .style('font-size', '14px')
+      .style('color', '#17416a')
+      .style('font-family', 'Vazirmatn, IRANSans, Tahoma')
+      .style('display', 'none')
+      .style('z-index', '30');
+
+    node.on('mouseover', (event, d) => {
+      infoBox.html(`
+        <b>گره: ${d.label}</b><br>
+        <div style='margin-top:7px;color:#2c2c2c;'>${d.description || ''}</div>
+        ${d.source ? `<div style='margin-top:8px;font-size:13px;'><a href='${d.source}' target='_blank'>منبع/رفرنس</a></div>` : ''}
+      `)
+        .style('left', (event.pageX + 20) + 'px')
+        .style('top', (event.pageY - 30) + 'px')
+        .style('display', 'block');
+    });
+    node.on('mouseout', () => {
+      infoBox.style('display', 'none');
+    });
+
+    link.on('mouseover', (event, d) => {
+      infoBox.html(`
+        <b>یال: ${d.source.label} → ${d.target.label}</b><br>
+        <div style='margin-top:7px;color:#2c2c2c;'>${d.label || ''}</div>
+        ${d.ref ? `<div style='margin-top:8px;font-size:13px;'><a href='${d.ref}' target='_blank'>منبع/رفرنس</a></div>` : ''}
+      `)
+        .style('left', (event.pageX + 20) + 'px')
+        .style('top', (event.pageY - 30) + 'px')
+        .style('display', 'block');
+    });
+    link.on('mouseout', () => {
+      infoBox.style('display', 'none');
+    });
+
     simulation.on('tick', () => {
       link
         .attr('x1', d => d.source.x)
         .attr('y1', d => d.source.y)
         .attr('x2', d => d.target.x)
         .attr('y2', d => d.target.y);
-
       node
         .attr('transform', d => `translate(${d.x},${d.y})`);
     });
 
-    // تابع Drag با افکت سایه و انیمیشن
     function drag(simulation) {
       function dragstarted(event, d) {
         if (!event.active) simulation.alphaTarget(0.3).restart();
