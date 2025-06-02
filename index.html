@@ -7,6 +7,18 @@
     <script src="https://d3js.org/d3.v7.min.js"></script>
     <style>
         body { direction: rtl; background: #fafaff; }
+        .summary-box {
+            margin: 28px 0 24px 0;
+            padding: 22px 32px 20px 24px;
+            background: #f0f3fa;
+            border-radius: 17px;
+            border: 1.3px solid #d7e3f7;
+            font-family: Tahoma,sans-serif;
+            font-size: 18px;
+            color: #20406a;
+            max-width: 740px;
+            box-shadow: 0 4px 20px #dde8ff55;
+        }
         .node circle { fill: #f7f7f7; stroke: #888; stroke-width: 2.3px; }
         .label { font-size: 15px; font-family: Tahoma, sans-serif; pointer-events: none; }
         .link { stroke-width: 3px; }
@@ -16,6 +28,11 @@
     </style>
 </head>
 <body>
+    <div class="summary-box">
+        <b>خلاصه مدیریتی:</b>
+        این نمودار سیستمی، زنجیره علّی و پیامدهای پروژه انتقال آب از کلات به مشهد را به تصویر می‌کشد.
+        نمودار، نقش عوامل مختلف (از تغییرات اقلیمی و فشار تقاضا تا واکنش‌های اجتماعی و تصمیمات سیاسی) را در بروز چالش یا فرصت برای منابع آب منطقه روشن می‌کند و ابزاری برای تحلیل سیاست‌های بهینه، مدیریت تعارض منافع، و آینده‌نگری تصمیم‌سازان است.
+    </div>
     <svg id="diagram" width="1100" height="700"></svg>
 
     <!-- کلید راهنما (Legend) -->
