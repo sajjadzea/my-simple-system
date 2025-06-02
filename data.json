@@ -1,16 +1,20 @@
-// به جای d3.json("data.json").then(function(graph) { ... });
-// این رو بزن:
-const graph = {
-  nodes: [
-    { id: "rainfall", label: "کاهش بارش" },
-    { id: "ab_kalat", label: "موجودی آب کلات" },
-    { id: "ab_transfer", label: "برداشت آب برای انتقال" }
+{
+  "nodes": [
+    { "id": "rainfall", "label": "کاهش بارش", "description": "کاهش میزان بارش منجر به کاهش منابع آب سطحی و زیرزمینی می‌شود.", "source": "تحلیل داده‌های اقلیمی استان" },
+    { "id": "ab_kalat", "label": "موجودی آب کلات", "description": "ذخایر آب موجود در منطقه کلات که تحت تأثیر بارش و برداشت قرار می‌گیرد.", "source": "گزارش منابع آب شهرستان کلات" },
+    { "id": "ab_transfer", "label": "برداشت آب برای انتقال", "description": "برداشت آب از منابع کلات جهت انتقال به مشهد.", "source": "طرح مطالعات انتقال آب" },
+    { "id": "urban_demand", "label": "تقاضای آب شهری مشهد", "description": "افزایش تقاضای آب در مشهد به‌دلیل رشد جمعیت و ورود زائر.", "source": "آمار جمعیت و مصرف آب شهری مشهد" },
+    { "id": "job_loss", "label": "از دست رفتن مشاغل کشاورزی", "description": "کاهش آب باعث کاهش تولید کشاورزی و بیکاری در منطقه می‌شود.", "source": "گزارش اشتغال بخش کشاورزی کلات" },
+    { "id": "mp_vote", "label": "رای مردم کلات به نماینده مجلس", "description": "حمایت مردم منطقه از نماینده مجلس در صورت توجه به مشکل آب.", "source": "تحلیل رفتار انتخاباتی" },
+    { "id": "mp_decision", "label": "تصمیم نماینده مجلس", "description": "نماینده مجلس برای جلب رضایت مردم و پیشبرد پروژه انتقال آب تصمیم‌گیری می‌کند.", "source": "مصاحبه با نماینده مجلس" }
   ],
-  links: [
-    { source: "rainfall", target: "ab_kalat", type: "positive" },
-    { source: "ab_kalat", target: "ab_transfer", type: "negative" }
+  "links": [
+    { "source": "rainfall", "target": "ab_kalat", "type": "+", "label": "کاهش بارش موجب کاهش موجودی آب می‌شود." },
+    { "source": "ab_kalat", "target": "ab_transfer", "type": "-", "label": "کاهش آب کلات موجب محدودیت در انتقال می‌شود." },
+    { "source": "urban_demand", "target": "ab_transfer", "type": "+", "label": "افزایش تقاضا باعث افزایش برداشت برای انتقال می‌شود." },
+    { "source": "ab_kalat", "target": "job_loss", "type": "-", "label": "کمبود آب موجب بیکاری کشاورزان می‌شود." },
+    { "source": "job_loss", "target": "mp_vote", "type": "+", "label": "از دست رفتن شغل موجب تمایل به حمایت از نماینده می‌شود." },
+    { "source": "mp_vote", "target": "mp_decision", "type": "+", "label": "نماینده برای حفظ رای مردم از پروژه حمایت می‌کند." },
+    { "source": "mp_decision", "target": "ab_transfer", "type": "+", "label": "مصوبه و حمایت نماینده باعث پیشرفت پروژه انتقال آب می‌شود." }
   ]
-};
-// بقیه کد D3 مثل قبله، فقط تابع رو با این دیتا اجرا کن
-// یعنی:
-// mainD3(graph)
+}
