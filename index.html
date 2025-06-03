@@ -2,53 +2,128 @@
 <html lang="fa">
 <head>
     <meta charset="UTF-8">
+    <title>سیستم نمایش گراف با توضیحات</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>System Dashboard D3.js</title>
-    <script src="https://d3js.org/d3.v7.min.js"></script>
     <style>
-        body { direction: rtl; background: #fafaff; font-family: Tahoma,sans-serif; }
-        .summary-box { margin: 28px 0 24px 0; padding: 22px 32px 20px 24px; background: #f0f3fa; border-radius: 17px; border: 1.3px solid #d7e3f7; font-size: 18px; color: #20406a; max-width: 740px; box-shadow: 0 4px 20px #dde8ff55; }
-        .node circle { fill: #f7f7f7; stroke: #888; stroke-width: 2.3px; }
-        .label { font-size: 15px; pointer-events: none; }
-        .link { stroke-width: 3px; }
-        .link.positive { stroke: #1aaf5d; }
-        .link.negative { stroke: #e14646; stroke-dasharray: 8 5; }
-        /* Tooltip مدیریتی */
-        #manager-tooltip { position: fixed; top: 14px; left: 50%; transform: translateX(-50%); background: #fffbe7; border: 1.7px solid #d4c98c; border-radius: 18px; box-shadow: 0 8px 32px #cabf9c55; padding: 20px 34px 20px 34px; z-index: 99; min-width: 350px; max-width: 550px; font-size: 15.5px; color: #333; display: none; }
-        #manager-tooltip .title { font-weight: bold; font-size: 18px; color: #b59a2a; margin-bottom: 9px; }
-        #manager-tooltip table { border-collapse: collapse; width: 100%; margin-top: 6px; }
-        #manager-tooltip th, #manager-tooltip td { border-bottom: 1px solid #eee; padding: 6px 3px; }
-        #manager-tooltip th { background: #f3eecf; color: #8e812f; font-weight: bold; }
-        #manager-tooltip td a { color: #2196f3; text-decoration: underline; }
-        #side-table-box { position: fixed; top: 30px; left: 26px; width: 390px; background: #fff; border-radius: 16px; border: 1.6px solid #bbc6e3; box-shadow: 0 8px 24px #b9bccc45; padding: 24px 14px 17px 12px; z-index: 10; font-size: 15px; min-height: 320px; }
-        #side-table-box table { border-collapse: collapse; width: 100%; }
-        #side-table-box th, #side-table-box td { border-bottom: 1px solid #eee; padding: 4px 3px; }
-        #side-table-box th { background: #ebf1fc; color: #447; font-weight: bold; }
-        #side-table-box td a { color: #297bf3; text-decoration: underline; }
-        #side-table-search { width: 80%; margin-bottom: 12px; border: 1.2px solid #aac; border-radius: 6px; padding: 5px 8px; font-size: 15px; }
+        body {
+            background: #f7f7f7;
+            font-family: Vazirmatn, Tahoma, Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+        }
+        #graph-container {
+            width: 100vw;
+            height: 100vh;
+            direction: ltr;
+        }
+        #tooltip {
+            position: absolute;
+            background-color: rgba(0,0,0,0.85);
+            color: #fff;
+            padding: 8px 14px;
+            border-radius: 6px;
+            font-size: 15px;
+            pointer-events: none;
+            z-index: 9999;
+            max-width: 300px;
+            box-shadow: 0 6px 24px 0 rgba(0,0,0,0.2);
+            display: none;
+        }
+        a {
+            color: #ffe8a3;
+            text-decoration: underline;
+        }
     </style>
+    <script src="https://d3js.org/d3.v7.min.js"></script>
 </head>
 <body>
-    <div id="graph"></div>
-    <div class="summary-box">
-        <b>خلاصه مدیریتی:</b>
-        این نمودار سیستمی، زنجیره علّی و پیامدهای پروژه انتقال آب از کلات به مشهد را به تصویر می‌کشد.
-        نمودار، نقش عوامل مختلف (از تغییرات اقلیمی و فشار تقاضا تا واکنش‌های اجتماعی و تصمیمات سیاسی) را در بروز چالش یا فرصت برای منابع آب منطقه روشن می‌کند و ابزاری برای تحلیل سیاست‌های بهینه، مدیریت تعارض منافع، و آینده‌نگری تصمیم‌سازان است.
-    </div>
-    <svg id="diagram" width="1100" height="700"></svg>
-    <!-- کلید راهنما (Legend) -->
-    <div id="legend" style="margin:20px 0 0 40px;">
-      <span style="display:inline-block;width:32px;height:6px;background:#1aaf5d;margin-left:5px;vertical-align:middle;"></span> یال مثبت (اثر افزاینده)
-      &nbsp;&nbsp;
-      <span style="display:inline-block;width:32px;height:6px;background:#e14646;border-bottom:3px dashed #e14646;margin-left:5px;vertical-align:middle;"></span> یال منفی (اثر کاهنده)
-    </div>
-    <!-- Tooltip مدیریتی ثابت بالا -->
-    <div id="manager-tooltip"></div>
-    <!-- جدول دائمی خلاصه -->
-    <div id="side-table-box">
-      <input type="text" id="side-table-search" placeholder="جستجو در روابط و منابع..." />
-      <div id="side-table-content"></div>
-    </div>
-    <script src="main.js"></script>
+    <div id="graph-container"></div>
+    <div id="tooltip"></div>
+    <script>
+        // نمونه داده برای تست
+        const nodes = [
+            { id: 1, name: "گره اول", url: "https://example.com/1" },
+            { id: 2, name: "گره دوم", url: "https://example.com/2" },
+            { id: 3, name: "گره سوم", url: "https://example.com/3" }
+        ];
+        const links = [
+            { source: 1, target: 2 },
+            { source: 2, target: 3 }
+        ];
+
+        const width = window.innerWidth, height = window.innerHeight;
+
+        const svg = d3.select("#graph-container")
+            .append("svg")
+            .attr("width", width)
+            .attr("height", height);
+
+        const simulation = d3.forceSimulation(nodes)
+            .force("link", d3.forceLink(links).id(d => d.id).distance(220))
+            .force("charge", d3.forceManyBody().strength(-650))
+            .force("center", d3.forceCenter(width / 2, height / 2));
+
+        const link = svg.append("g")
+            .selectAll("line")
+            .data(links)
+            .enter().append("line")
+            .attr("stroke", "#bdbdbd")
+            .attr("stroke-width", 3);
+
+        const node = svg.append("g")
+            .selectAll("circle")
+            .data(nodes)
+            .enter().append("circle")
+            .attr("r", 38)
+            .attr("fill", "#0074d9")
+            .attr("stroke", "#fff")
+            .attr("stroke-width", 3)
+            .style("cursor", "pointer");
+
+        // Tooltip behavior
+        node.on("mouseover", function(event, d) {
+            d3.select("#tooltip")
+                .html(`<b>${d.name}</b><br><a href="${d.url}" target="_blank">${d.url}</a>`)
+                .style("left", (event.pageX + 16) + "px")
+                .style("top", (event.pageY + 16) + "px")
+                .style("display", "block");
+        })
+        .on("mousemove", function(event) {
+            d3.select("#tooltip")
+                .style("left", (event.pageX + 16) + "px")
+                .style("top", (event.pageY + 16) + "px");
+        })
+        .on("mouseout", function() {
+            d3.select("#tooltip").style("display", "none");
+        });
+
+        // اضافه کردن عنوان به هر نود
+        svg.append("g")
+            .selectAll("text")
+            .data(nodes)
+            .enter()
+            .append("text")
+            .attr("text-anchor", "middle")
+            .attr("dy", ".35em")
+            .style("font-size", "18px")
+            .style("font-weight", 700)
+            .style("pointer-events", "none")
+            .style("fill", "#fff")
+            .text(d => d.name);
+
+        simulation.on("tick", () => {
+            link
+                .attr("x1", d => d.source.x)
+                .attr("y1", d => d.source.y)
+                .attr("x2", d => d.target.x)
+                .attr("y2", d => d.target.y);
+            node
+                .attr("cx", d => d.x)
+                .attr("cy", d => d.y);
+            svg.selectAll("text")
+                .attr("x", d => d.x)
+                .attr("y", d => d.y);
+        });
+    </script>
 </body>
 </html>
