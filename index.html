@@ -6,43 +6,52 @@
     <title>System Diagram D3.js - Multi-layer View</title>
     <script src="https://d3js.org/d3.v7.min.js"></script>
     <style>
-        body { direction: rtl; background: #fafaff; font-family: Tahoma,sans-serif;}
+        body { direction: rtl; background: #fafaff; font-family: Tahoma,sans-serif; }
         .summary-box {
-            margin: 28px 0 24px 0;
-            padding: 22px 32px 20px 24px;
+            margin: 18px auto 16px auto;
+            padding: 15px 20px 13px 12px;
             background: #f0f3fa;
-            border-radius: 17px;
-            border: 1.3px solid #d7e3f7;
-            font-size: 18px;
+            border-radius: 14px;
+            border: 1px solid #d7e3f7;
+            font-size: 16px;
             color: #20406a;
-            max-width: 740px;
-            box-shadow: 0 4px 20px #dde8ff55;
+            max-width: 600px;
+            box-shadow: 0 2px 12px #dde8ff30;
         }
-        .node circle { fill: #f7f7f7; stroke-width: 2.8px; }
-        .label { font-size: 15px; pointer-events: none; }
-        .link { stroke-width: 3px; }
-        .link.positive { stroke: #1aaf5d; }
-        .link.negative { stroke: #e14646; stroke-dasharray: 8 5; }
-        .tooltip { position: absolute; background: #fff; border: 1.5px solid #bbb; padding: 8px 15px; border-radius: 7px; font-size: 14px; box-shadow: 0 4px 14px #ccc; pointer-events: none; visibility: hidden; }
+        #main-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 26px;
+            justify-content: center;
+            align-items: flex-start;
+            min-height: 80vh;
+        }
+        #diagram-container { flex: 3 1 570px; min-width: 350px; min-height: 420px; background: #fafaff; border-radius: 14px; }
+        #diagram { width: 100%; height: 73vh; min-height: 430px; max-width: 99vw; }
         #info-panel {
-          position:fixed;top:40px;right:24px;width:360px;
-          background:#fffbe7;border-radius:15px;
-          border:1.7px solid #d4c98c;padding:24px 18px;
-          box-shadow:0 8px 24px #ccbe8c50;z-index:9;display:none;
-          font-family:Tahoma;
+            flex: 1 1 320px; min-width: 285px; background: #fffbe7; border-radius: 12px;
+            border: 1.7px solid #d4c98c; padding: 22px 12px; box-shadow: 0 4px 16px #ccbe8c40; font-family: Tahoma;
+            margin-top: 0;
         }
-        #info-panel table {border-collapse: collapse; width: 100%;margin-top: 8px;}
-        #info-panel th, #info-panel td {border-bottom: 1px solid #eee; padding: 6px 3px;}
-        #info-panel th {background: #f3eecf; color: #8e812f; font-weight: bold;}
-        #info-panel td a { color:#2196f3; text-decoration: underline; }
-        /* استایل منوی لایه‌ها */
-        #layer-menu { margin:16px 0 0 0; text-align:center; }
+        #panel-content { font-size: 15px; }
+        #panel-content a { color: #2196f3; text-decoration: underline; word-break: break-all; }
+        #legend {
+            margin: 12px 0 0 0; font-size: 14px; text-align: left; padding-right: 12px;
+        }
+        #layer-menu {
+            margin: 18px 0 4px 0; text-align: center;
+        }
         #layer-menu button {
-            margin: 0 5px; padding: 7px 20px; border:none; border-radius:9px;
-            background: #f4f4fd; color:#404099; font-weight: bold; font-size:15px; cursor:pointer;
+            margin: 0 5px; padding: 7px 18px; border:none; border-radius:9px;
+            background: #f4f4fd; color:#404099; font-weight: bold; font-size:14px; cursor:pointer;
             transition: background .18s;
         }
         #layer-menu button.active { background:#b388ff; color:#fff; }
+        @media (max-width: 900px) {
+            #main-container { flex-direction: column; align-items: stretch; gap: 20px; }
+            #diagram-container, #info-panel { width: 97vw; min-width: 180px; margin: 0 auto; }
+            .summary-box { font-size: 14px; padding: 9px 7px; max-width: 99vw; }
+        }
     </style>
 </head>
 <body>
@@ -58,23 +67,15 @@
       <button data-layer="environment">محیط‌زیست</button>
       <button data-layer="social">اجتماعی</button>
     </div>
-    <svg id="diagram" width="1100" height="700"></svg>
-    <div id="legend" style="margin:20px 0 0 40px;">
+    <div id="legend">
       <span style="display:inline-block;width:32px;height:6px;background:#1aaf5d;margin-left:5px;vertical-align:middle;"></span> یال مثبت (اثر افزاینده)
       &nbsp;&nbsp;
       <span style="display:inline-block;width:32px;height:6px;background:#e14646;border-bottom:3px dashed #e14646;margin-left:5px;vertical-align:middle;"></span> یال منفی (اثر کاهنده)
     </div>
-    <div id="info-panel"><div id="panel-content"></div></div>
-
-    <script>
-    // تعریف رنگ هر لایه
-    const layerColors = {
-      political: '#b388ff',
-      economic: '#ffd54f',
-      environment: '#4dd0e1',
-      social: '#e57373'
-    };
-    </script>
+    <div id="main-container">
+      <div id="diagram-container"><svg id="diagram"></svg></div>
+      <div id="info-panel"><div id="panel-content">برای مشاهده توضیحات و رفرنس، روی هر گره یا یال کلیک کنید.</div></div>
+    </div>
     <script src="main.js"></script>
 </body>
 </html>
