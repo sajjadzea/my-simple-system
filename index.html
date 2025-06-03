@@ -2,128 +2,62 @@
 <html lang="fa">
 <head>
     <meta charset="UTF-8">
-    <title>سیستم نمایش گراف با توضیحات</title>
+    <title>نمودار روابط علّی - نسخه ویژه کومو</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <style>
         body {
-            background: #f7f7f7;
+            background: #fafbfc;
             font-family: Vazirmatn, Tahoma, Arial, sans-serif;
             margin: 0;
             padding: 0;
         }
-        #graph-container {
+        #main-content {
             width: 100vw;
             height: 100vh;
-            direction: ltr;
         }
         #tooltip {
             position: absolute;
-            background-color: rgba(0,0,0,0.85);
+            background: rgba(0,0,0,0.85);
             color: #fff;
-            padding: 8px 14px;
-            border-radius: 6px;
-            font-size: 15px;
+            padding: 8px 16px;
+            border-radius: 8px;
+            font-size: 16px;
             pointer-events: none;
             z-index: 9999;
-            max-width: 300px;
-            box-shadow: 0 6px 24px 0 rgba(0,0,0,0.2);
+            max-width: 350px;
+            box-shadow: 0 6px 24px 0 rgba(0,0,0,0.14);
             display: none;
         }
-        a {
-            color: #ffe8a3;
-            text-decoration: underline;
+        .node-icon {
+            font-size: 26px;
+            margin-left: 4px;
         }
     </style>
-    <script src="https://d3js.org/d3.v7.min.js"></script>
+    <!-- فرض بر اینکه فایل JS گراف شما (مثلاً از GraphCommons, D3 یا کد شخصی) جداگانه لود می‌شود -->
+    <!-- اگر با کومو/GraphCommons یا کتابخانه آماده کار می‌کنید، اینجا فقط کد tooltip اضافه می‌شود -->
 </head>
 <body>
-    <div id="graph-container"></div>
+    <div id="main-content"><!-- محل رندر نمودار شما --></div>
     <div id="tooltip"></div>
     <script>
-        // نمونه داده برای تست
-        const nodes = [
-            { id: 1, name: "گره اول", url: "https://example.com/1" },
-            { id: 2, name: "گره دوم", url: "https://example.com/2" },
-            { id: 3, name: "گره سوم", url: "https://example.com/3" }
-        ];
-        const links = [
-            { source: 1, target: 2 },
-            { source: 2, target: 3 }
-        ];
-
-        const width = window.innerWidth, height = window.innerHeight;
-
-        const svg = d3.select("#graph-container")
-            .append("svg")
-            .attr("width", width)
-            .attr("height", height);
-
-        const simulation = d3.forceSimulation(nodes)
-            .force("link", d3.forceLink(links).id(d => d.id).distance(220))
-            .force("charge", d3.forceManyBody().strength(-650))
-            .force("center", d3.forceCenter(width / 2, height / 2));
-
-        const link = svg.append("g")
-            .selectAll("line")
-            .data(links)
-            .enter().append("line")
-            .attr("stroke", "#bdbdbd")
-            .attr("stroke-width", 3);
-
-        const node = svg.append("g")
-            .selectAll("circle")
-            .data(nodes)
-            .enter().append("circle")
-            .attr("r", 38)
-            .attr("fill", "#0074d9")
-            .attr("stroke", "#fff")
-            .attr("stroke-width", 3)
-            .style("cursor", "pointer");
-
-        // Tooltip behavior
-        node.on("mouseover", function(event, d) {
-            d3.select("#tooltip")
-                .html(`<b>${d.name}</b><br><a href="${d.url}" target="_blank">${d.url}</a>`)
-                .style("left", (event.pageX + 16) + "px")
-                .style("top", (event.pageY + 16) + "px")
-                .style("display", "block");
-        })
-        .on("mousemove", function(event) {
-            d3.select("#tooltip")
-                .style("left", (event.pageX + 16) + "px")
-                .style("top", (event.pageY + 16) + "px");
-        })
-        .on("mouseout", function() {
-            d3.select("#tooltip").style("display", "none");
-        });
-
-        // اضافه کردن عنوان به هر نود
-        svg.append("g")
-            .selectAll("text")
-            .data(nodes)
-            .enter()
-            .append("text")
-            .attr("text-anchor", "middle")
-            .attr("dy", ".35em")
-            .style("font-size", "18px")
-            .style("font-weight", 700)
-            .style("pointer-events", "none")
-            .style("fill", "#fff")
-            .text(d => d.name);
-
-        simulation.on("tick", () => {
-            link
-                .attr("x1", d => d.source.x)
-                .attr("y1", d => d.source.y)
-                .attr("x2", d => d.target.x)
-                .attr("y2", d => d.target.y);
-            node
-                .attr("cx", d => d.x)
-                .attr("cy", d => d.y);
-            svg.selectAll("text")
-                .attr("x", d => d.x)
-                .attr("y", d => d.y);
-        });
+    // کد tooltip فقط اضافه می‌شود. فرض بر این است که رندر و ساخت گراف مثل قبل توسط کد خودتان انجام می‌شود.
+    // کافی است در همان event های مربوط به کلیک/هاور نودها یا یال‌ها، این تابع را فراخوانی کنید:
+    // showTooltip(content, event), hideTooltip()
+    function showTooltip(html, event) {
+        const tooltip = document.getElementById('tooltip');
+        tooltip.innerHTML = html;
+        tooltip.style.display = 'block';
+        tooltip.style.left = (event.pageX + 18) + 'px';
+        tooltip.style.top = (event.pageY + 18) + 'px';
+    }
+    function hideTooltip() {
+        document.getElementById('tooltip').style.display = 'none';
+    }
+    // مثال: اگر گره‌ای را hover کردید، فراخوانی کنید:
+    // showTooltip('<b>نام گره</b><br>توضیح گره<br><a href="#">URL مرجع</a>', event);
+    // اگر خارج شدید:
+    // hideTooltip();
+    // بقیه کد گراف شما باید طبق روال قبلی (مثلاً با D3 یا GraphCommons) کار کند.
     </script>
 </body>
 </html>
