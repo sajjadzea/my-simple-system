@@ -1,11 +1,10 @@
-// main.js - نسخه اصلاح شده مطابق با نیاز شما
-// فرض بر این است که data.json بارگذاری می‌شود (مثلاً با fetch)
+// main.js - نسخه نهایی ویژه پرزنت مدیریتی با فلش، رنگ، پنل اطلاعات و رفرنس
 
 const layerColors = {
-  political: '#b388ff',
+  political: '#7a6fff',
   economic: '#ffd54f',
-  environment: '#4dd0e1',
-  social: '#e57373'
+  environment: '#48b5ae',
+  social: '#ef798a'
 };
 
 // بارگذاری داده‌ها از data.json
@@ -20,14 +19,13 @@ let links = [];
 
 function filterNodes(nodes, layer) {
   if(layer === 'all') return nodes;
-  // اگر لایه انتخابی است فقط نودهای همان لایه را نمایش بده
   return nodes.filter(n => n.layer === layer);
 }
 function filterLinks(links, layer) {
   if(layer === 'all') return links;
-  // نمایش یال‌هایی که مبدا یا مقصدشان به نود همان لایه تعلق دارد
+  // فقط یال‌هایی که مبداشان در همان لایه است
   return links.filter(l => {
-    const s = nodes.find(n => n.id === l.source || n.id === l.source.id);
+    const s = nodes.find(n => n.id === (l.source.id || l.source));
     return s && s.layer === layer;
   });
 }
@@ -39,32 +37,40 @@ function drawGraph() {
     .attr('width', width)
     .attr('height', height);
 
+  // --- تعریف فلش یال‌ها ---
+  svg.append('defs').html(`
+    <marker id="arrow-green" viewBox="0 -5 10 10" refX="36" refY="0" markerWidth="8" markerHeight="8" orient="auto" class="arrow">
+      <path d="M0,-5L10,0L0,5"></path>
+    </marker>
+    <marker id="arrow-red" viewBox="0 -5 10 10" refX="36" refY="0" markerWidth="8" markerHeight="8" orient="auto" class="arrow-red">
+      <path d="M0,-5L10,0L0,5"></path>
+    </marker>
+  `);
+
   const filteredNodes = filterNodes(nodes, selectedLayer);
   const filteredLinks = filterLinks(links, selectedLayer);
 
-  // Force simulation
   const simulation = d3.forceSimulation(filteredNodes)
     .force('link', d3.forceLink(filteredLinks).id(d => d.id).distance(220))
     .force('charge', d3.forceManyBody().strength(-630))
     .force('center', d3.forceCenter(width / 2, height / 2));
 
-  // یال‌ها
+  // --- یال‌ها ---
   const link = svg.append('g')
     .selectAll('line')
     .data(filteredLinks)
     .enter().append('line')
     .attr('class', d => 'link ' + (d.type === '+' ? 'positive' : 'negative'))
-    .attr('stroke', d => {
-      // رنگ براساس لایه یا نوع
-      if(d.type === '+') return '#1aaf5d';
-      if(d.type === '-') return '#e14646';
-      return '#888';
-    })
+    .attr('stroke', d => d.type === '+' ? '#1aaf5d' : (d.type === '-' ? '#e14646' : '#888'))
     .attr('stroke-dasharray', d => d.type === '-' ? '8 5' : null)
     .attr('stroke-width', 3)
-    .on('click', (event, d) => showLinkInfo(d));
+    .attr('marker-end', d => d.type === '+' ? 'url(#arrow-green)' : 'url(#arrow-red)')
+    .on('click', (event, d) => {
+      event.stopPropagation();
+      showLinkInfo(d);
+    });
 
-  // گره‌ها
+  // --- گره‌ها ---
   const node = svg.append('g')
     .selectAll('g')
     .data(filteredNodes)
@@ -76,17 +82,23 @@ function drawGraph() {
       .on('end', dragended));
   node.append('circle')
     .attr('r', 38)
-    .attr('fill', '#f7f7f7')
-    .attr('stroke', d => layerColors[d.layer] || '#888')
-    .attr('stroke-width', 3.2)
-    .on('click', (event, d) => showNodeInfo(d));
+    .attr('fill', '#fff')
+    .attr('stroke', d => layerColors[d.layer] || '#aaa')
+    .attr('stroke-width', 4)
+    .attr('class', d => d.layer)
+    .on('click', (event, d) => {
+      event.stopPropagation();
+      node.selectAll('circle').classed('selected', false);
+      d3.select(event.currentTarget).classed('selected', true);
+      showNodeInfo(d);
+    });
   node.append('text')
     .attr('class', 'label')
     .attr('text-anchor', 'middle')
     .attr('dy', '.35em')
-    .style('font-size', '15.5px')
-    .style('font-weight', 600)
-    .style('fill', '#20406a')
+    .style('font-size', '15.7px')
+    .style('font-weight', 700)
+    .style('fill', '#1a2846')
     .text(d => d.label);
 
   simulation.on('tick', () => {
@@ -114,30 +126,39 @@ function dragended(event, d) {
 // نمایش اطلاعات گره در پنل کناری
 function showNodeInfo(node) {
   const panel = document.getElementById('panel-content');
-  let info = `<h2 style="color:#20406a;font-size:19px">${node.label}</h2>`;
-  if(node.description) info += `<p>${node.description}</p>`;
-  // نمایش منابع (در آینده اگر آرایه refs داشتی اضافه کن)
-  panel.innerHTML = info;
-  document.getElementById('info-panel').style.display = 'block';
-}
-// نمایش اطلاعات یال با رفرنس و URL
-function showLinkInfo(link) {
-  const panel = document.getElementById('panel-content');
-  let info = `<h3 style="color:#444">${link.label || ''}</h3>`;
-  if(link.references && link.references.length) {
-    info += '<ul>';
-    link.references.forEach(ref => {
-      info += `<li style='margin-bottom:10px'><b>${ref.title}</b><br>` +
-        `<a href='${ref.url}' target='_blank'>${ref.url}</a><br>` +
-        `<span style='font-size:13px;color:#666'>${ref.why}</span></li>`;
+  let info = `<h2 style="color:#4834d4;font-size:19.5px;margin-bottom:8px">${node.label}</h2>`;
+  if(node.description) info += `<p style="margin:0 0 10px 0;color:#333">${node.description}</p>`;
+  // منابع هر گره (در صورت داشتن refs)
+  if(node.references && node.references.length) {
+    info += '<ul style="margin:12px 0 0 0;padding-right:18px">';
+    node.references.forEach(ref => {
+      info += `<li style='margin-bottom:13px'><b>${ref.title}</b><br>` +
+        (ref.url ? `<a href='${ref.url}' target='_blank'>${ref.url}</a><br>` : '') +
+        `<span style='font-size:13px;color:#666'>${ref.why||''}</span></li>`;
     });
     info += '</ul>';
   }
   panel.innerHTML = info;
-  document.getElementById('info-panel').style.display = 'block';
+  document.getElementById('info-panel').style.boxShadow = '0 6px 32px #b8bedc28';
+}
+// نمایش اطلاعات یال با رفرنس و URL
+function showLinkInfo(link) {
+  const panel = document.getElementById('panel-content');
+  let info = `<h3 style="color:#e67e22;font-size:17.5px">ارتباط</h3>`;
+  if(link.label) info += `<div style="margin-bottom:6px"><b>${link.label}</b></div>`;
+  if(link.references && link.references.length) {
+    info += '<ul style="margin:14px 0 0 0;padding-right:18px">';
+    link.references.forEach(ref => {
+      info += `<li style='margin-bottom:13px'><b>${ref.title}</b><br>` +
+        (ref.url ? `<a href='${ref.url}' target='_blank'>${ref.url}</a><br>` : '') +
+        `<span style='font-size:13px;color:#666'>${ref.why||''}</span></li>`;
+    });
+    info += '</ul>';
+  }
+  panel.innerHTML = info;
+  document.getElementById('info-panel').style.boxShadow = '0 8px 28px #ffd49c44';
 }
 
-// مدیریت انتخاب لایه از منو
 window.addEventListener('DOMContentLoaded', async () => {
   const data = await loadData();
   nodes = data.nodes.map(n => Object.assign({}, n, { layer: findLayer(n) }));
@@ -155,20 +176,17 @@ window.addEventListener('DOMContentLoaded', async () => {
   });
 });
 
-// توابع کمک: تعیین لایه گره
 function findLayer(node) {
-  // در صورت داشتن فیلد لایه واقعی پروژه، اینجا نگه دار
   if(node.layer) return node.layer;
-  // نمونه: تشخیص از روی لیبل یا منطق پروژه
   if(node.label && node.label.match(/سیاسی|نماینده|مجلس|تصمیم/)) return 'political';
   if(node.label && node.label.match(/اقتصاد|هزینه|تقاضا/)) return 'economic';
   if(node.label && node.label.match(/محیط|زیست|جریان|تالاب|آب|بارش|اکوسیستم/)) return 'environment';
   if(node.label && node.label.match(/اعتراض|اجتماعی|ذینفع|شغل|محلی/)) return 'social';
   return 'environment';
 }
-
-// کلیک خارج از گراف، بستن پنل اطلاعات
+// بستن پنل با کلیک خارج از گراف یا پنل
 window.addEventListener('click', (e) => {
   if(e.target.closest('#diagram') || e.target.closest('#info-panel')) return;
-  document.getElementById('info-panel').style.display = 'none';
+  document.getElementById('info-panel').style.boxShadow = '0 4px 16px #ffd59c30';
+  document.getElementById('panel-content').innerHTML = 'برای مشاهده توضیحات و رفرنس، روی هر گره یا یال کلیک کنید.';
 });
