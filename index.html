@@ -2,62 +2,59 @@
 <html lang="fa">
 <head>
     <meta charset="UTF-8">
-    <title>نمودار روابط علّی - نسخه ویژه کومو</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>System Diagram D3.js</title>
+    <script src="https://d3js.org/d3.v7.min.js"></script>
     <style>
-        body {
-            background: #fafbfc;
-            font-family: Vazirmatn, Tahoma, Arial, sans-serif;
-            margin: 0;
-            padding: 0;
+        body { direction: rtl; background: #fafaff; font-family: Tahoma,sans-serif;}
+        .summary-box {
+            margin: 28px 0 24px 0;
+            padding: 22px 32px 20px 24px;
+            background: #f0f3fa;
+            border-radius: 17px;
+            border: 1.3px solid #d7e3f7;
+            font-size: 18px;
+            color: #20406a;
+            max-width: 740px;
+            box-shadow: 0 4px 20px #dde8ff55;
         }
-        #main-content {
-            width: 100vw;
-            height: 100vh;
+        .node circle { fill: #f7f7f7; stroke: #888; stroke-width: 2.3px; }
+        .label { font-size: 15px; pointer-events: none; }
+        .link { stroke-width: 3px; }
+        .link.positive { stroke: #1aaf5d; }
+        .link.negative { stroke: #e14646; stroke-dasharray: 8 5; }
+        .tooltip { position: absolute; background: #fff; border: 1.5px solid #bbb; padding: 8px 15px; border-radius: 7px; font-size: 14px; box-shadow: 0 4px 14px #ccc; pointer-events: none; visibility: hidden; }
+        /* پنل کناری */
+        #info-panel {
+          position:fixed;top:40px;right:24px;width:360px;
+          background:#fffbe7;border-radius:15px;
+          border:1.7px solid #d4c98c;padding:24px 18px;
+          box-shadow:0 8px 24px #ccbe8c50;z-index:9;display:none;
+          font-family:Tahoma;
         }
-        #tooltip {
-            position: absolute;
-            background: rgba(0,0,0,0.85);
-            color: #fff;
-            padding: 8px 16px;
-            border-radius: 8px;
-            font-size: 16px;
-            pointer-events: none;
-            z-index: 9999;
-            max-width: 350px;
-            box-shadow: 0 6px 24px 0 rgba(0,0,0,0.14);
-            display: none;
-        }
-        .node-icon {
-            font-size: 26px;
-            margin-left: 4px;
-        }
+        #info-panel table {border-collapse: collapse; width: 100%;margin-top: 8px;}
+        #info-panel th, #info-panel td {border-bottom: 1px solid #eee; padding: 6px 3px;}
+        #info-panel th {background: #f3eecf; color: #8e812f; font-weight: bold;}
+        #info-panel td a { color:#2196f3; text-decoration: underline; }
     </style>
-    <!-- فرض بر اینکه فایل JS گراف شما (مثلاً از GraphCommons, D3 یا کد شخصی) جداگانه لود می‌شود -->
-    <!-- اگر با کومو/GraphCommons یا کتابخانه آماده کار می‌کنید، اینجا فقط کد tooltip اضافه می‌شود -->
 </head>
 <body>
-    <div id="main-content"><!-- محل رندر نمودار شما --></div>
-    <div id="tooltip"></div>
-    <script>
-    // کد tooltip فقط اضافه می‌شود. فرض بر این است که رندر و ساخت گراف مثل قبل توسط کد خودتان انجام می‌شود.
-    // کافی است در همان event های مربوط به کلیک/هاور نودها یا یال‌ها، این تابع را فراخوانی کنید:
-    // showTooltip(content, event), hideTooltip()
-    function showTooltip(html, event) {
-        const tooltip = document.getElementById('tooltip');
-        tooltip.innerHTML = html;
-        tooltip.style.display = 'block';
-        tooltip.style.left = (event.pageX + 18) + 'px';
-        tooltip.style.top = (event.pageY + 18) + 'px';
-    }
-    function hideTooltip() {
-        document.getElementById('tooltip').style.display = 'none';
-    }
-    // مثال: اگر گره‌ای را hover کردید، فراخوانی کنید:
-    // showTooltip('<b>نام گره</b><br>توضیح گره<br><a href="#">URL مرجع</a>', event);
-    // اگر خارج شدید:
-    // hideTooltip();
-    // بقیه کد گراف شما باید طبق روال قبلی (مثلاً با D3 یا GraphCommons) کار کند.
-    </script>
+    <div class="summary-box">
+        <b>خلاصه مدیریتی:</b>
+        این نمودار سیستمی، زنجیره علّی و پیامدهای پروژه انتقال آب از کلات به مشهد را به تصویر می‌کشد.
+        نمودار، نقش عوامل مختلف (از تغییرات اقلیمی و فشار تقاضا تا واکنش‌های اجتماعی و تصمیمات سیاسی) را در بروز چالش یا فرصت برای منابع آب منطقه روشن می‌کند و ابزاری برای تحلیل سیاست‌های بهینه، مدیریت تعارض منافع، و آینده‌نگری تصمیم‌سازان است.
+    </div>
+    <svg id="diagram" width="1100" height="700"></svg>
+
+    <!-- کلید راهنما (Legend) -->
+    <div id="legend" style="margin:20px 0 0 40px;">
+      <span style="display:inline-block;width:32px;height:6px;background:#1aaf5d;margin-left:5px;vertical-align:middle;"></span> یال مثبت (اثر افزاینده)
+      &nbsp;&nbsp;
+      <span style="display:inline-block;width:32px;height:6px;background:#e14646;border-bottom:3px dashed #e14646;margin-left:5px;vertical-align:middle;"></span> یال منفی (اثر کاهنده)
+    </div>
+    <!-- پنل کناری اطلاعات -->
+    <div id="info-panel"><div id="panel-content"></div></div>
+
+    <script src="main.js"></script>
 </body>
 </html>
