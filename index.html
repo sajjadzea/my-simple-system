@@ -3,63 +3,92 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>گراف سیستمی انتقال آب کلات - داشبورد تعاملی</title>
+    <title>داشبورد گراف انتقال آب کلات - پرزنت مدیریتی</title>
     <script src="https://d3js.org/d3.v7.min.js"></script>
     <style>
-        body { direction: rtl; background: #fafaff; font-family: Tahoma,sans-serif; margin:0; }
+        body {
+            direction: rtl;
+            background: linear-gradient(135deg,#f7faff 0%, #e8ecf6 100%);
+            font-family: Vazirmatn,Tahoma,sans-serif;
+            margin:0; min-height:100vh;
+        }
         .summary-box {
-            margin: 18px auto 16px auto;
-            padding: 15px 20px 13px 12px;
-            background: #f0f3fa;
-            border-radius: 14px;
-            border: 1px solid #d7e3f7;
-            font-size: 16px;
-            color: #20406a;
-            max-width: 660px;
-            box-shadow: 0 2px 12px #dde8ff30;
+            margin: 26px auto 20px auto;
+            padding: 18px 30px 16px 18px;
+            background: linear-gradient(90deg,#e3e8ff 0%,#f9f6ff 80%);
+            border-radius: 22px;
+            border: 1.5px solid #c5cae9;
+            font-size: 17.5px;
+            color: #29405d;
+            max-width: 780px;
+            box-shadow: 0 8px 32px #b8bedc35;
         }
         #main-container {
             display: flex;
             flex-wrap: wrap;
-            gap: 26px;
+            gap: 28px;
             justify-content: center;
             align-items: flex-start;
             min-height: 82vh;
         }
-        #diagram-container { flex: 3 1 630px; min-width: 360px; min-height: 400px; background: #fafaff; border-radius: 14px; }
-        #diagram { width: 100%; height: 72vh; min-height: 420px; max-width: 99vw; }
-        #info-panel {
-            flex: 1 1 335px; min-width: 245px; background: #fffbe7; border-radius: 12px;
-            border: 1.7px solid #d4c98c; padding: 22px 15px 20px 15px; box-shadow: 0 4px 16px #ccbe8c40; font-family: Tahoma;
-            margin-top: 0; max-height: 82vh; overflow-y: auto;
+        #diagram-container {
+            flex: 3 1 670px; min-width: 390px; min-height: 410px; 
+            background: #f3f8ffdd; border-radius: 20px; box-shadow: 0 6px 28px #8fc3ff2e;
+            padding: 12px 6px;
+            border: 1.7px solid #c7e3ff;
+            position: relative;
         }
-        #panel-content { font-size: 15.3px; }
-        #panel-content a { color: #2196f3; text-decoration: underline; word-break: break-all; }
+        #diagram { width: 100%; height: 72vh; min-height: 430px; max-width: 99vw; }
+        #info-panel {
+            flex: 1 1 350px; min-width: 255px; background: #fff7ebee; border-radius: 16px;
+            border: 1.7px solid #ffd49b; padding: 27px 20px 22px 15px; box-shadow: 0 6px 26px #ffd59c30; font-family: Vazirmatn,Tahoma;
+            margin-top: 0; max-height: 82vh; overflow-y: auto; transition: box-shadow .19s;
+        }
+        #panel-content { font-size: 16.2px; }
+        #panel-content a { color: #1976d2; text-decoration: underline; word-break: break-all; }
         #legend {
-            margin: 12px 0 0 0; font-size: 14px; text-align: left; padding-right: 12px;
+            margin: 18px 0 0 0; font-size: 15px; text-align: left; padding-right: 12px;
         }
         #layer-menu {
-            margin: 18px 0 4px 0; text-align: center;
+            margin: 22px 0 6px 0; text-align: center;
         }
         #layer-menu button {
-            margin: 0 5px; padding: 7px 18px; border:none; border-radius:9px;
-            background: #f4f4fd; color:#404099; font-weight: bold; font-size:15px; cursor:pointer;
-            transition: background .18s;
+            margin: 0 8px; padding: 9px 22px; border:none; border-radius:13px;
+            background: #f3e8ff; color:#38387a; font-weight: bold; font-size:16px; cursor:pointer;
+            transition: background .15s, box-shadow .17s;
+            box-shadow:0 2px 9px #bcaaff14;
         }
-        #layer-menu button.active { background:#b388ff; color:#fff; }
+        #layer-menu button.active { background:#7a6fff; color:#fff; box-shadow:0 2px 9px #a899ff50; }
+        /* نودها */
+        .node circle { filter: drop-shadow(0 2px 9px #99b1eb32); transition:.2s; }
+        .node circle.selected { stroke-width:5px !important; filter:drop-shadow(0 4px 16px #005ae1a1); }
+        .node circle.political { stroke: #7a6fff; }
+        .node circle.economic { stroke: #ffd54f; }
+        .node circle.environment { stroke: #48b5ae; }
+        .node circle.social { stroke: #ef798a; }
+        .node text { paint-order: stroke; stroke: #fff; stroke-width: 2px; }
+        /* فلش یال */
+        marker.arrow {
+            fill: #1aaf5d;
+            stroke: none;
+        }
+        marker.arrow-red {
+            fill: #e14646;
+            stroke: none;
+        }
         @media (max-width: 900px) {
             #main-container { flex-direction: column; align-items: stretch; gap: 18px; }
             #diagram-container, #info-panel { width: 97vw; min-width: 180px; margin: 0 auto; }
-            .summary-box { font-size: 14px; padding: 9px 7px; max-width: 99vw; }
-            #info-panel { min-height: 100px; max-height: 360px; }
+            .summary-box { font-size: 14px; padding: 11px 7px; max-width: 99vw; }
+            #info-panel { min-height: 110px; max-height: 360px; }
         }
     </style>
 </head>
 <body>
     <div class="summary-box">
         <b>خلاصه مدیریتی:</b>
-        این داشبورد سیستمی، زنجیره علّی و پیامدهای پروژه انتقال آب از کلات به مشهد را به تصویر می‌کشد. <br>
-        نقش عوامل مختلف (از تغییرات اقلیمی و فشار تقاضا تا واکنش‌های اجتماعی و تصمیمات سیاسی) در ایجاد چالش یا فرصت برای منابع آب منطقه را شفاف می‌کند و ابزاری برای تحلیل سیاست‌های بهینه، مدیریت تعارض منافع، و آینده‌نگری تصمیم‌سازان است.
+        این داشبورد تعاملی، زنجیره علی و پیامدهای پروژه انتقال آب از کلات به مشهد را شفاف و بصری نمایش می‌دهد.<br>
+        با فیلتر لایه‌ها، مشاهده رفرنس‌ها و جزییات هر پیوند، مدیران می‌توانند در چند ثانیه کل سیستم و ریسک‌ها را تحلیل کنند.
     </div>
     <div id="layer-menu">
       <button data-layer="all" class="active">همه لایه‌ها</button>
