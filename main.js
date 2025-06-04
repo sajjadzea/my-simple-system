@@ -1,6 +1,4 @@
 
-    .force('charge', d3.forceManyBody().strength(-630))
-    .force('center', d3.forceCenter(width / 2, height / 2));
 
   // --- یال‌ها ---
 
