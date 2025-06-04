@@ -12,6 +12,16 @@
             font-family: Vazirmatn,Tahoma,sans-serif;
             margin:0; min-height:100vh;
         }
+        .page-header {
+            text-align: center;
+            background: linear-gradient(90deg,#7a6fff,#48b5ae);
+            color: #fff;
+            padding: 16px 0;
+            font-size: 24px;
+            font-weight: bold;
+            box-shadow: 0 4px 16px rgba(0,0,0,0.15);
+            margin-bottom: 12px;
+        }
         .summary-box {
             margin: 26px auto 20px auto;
             padding: 18px 30px 16px 18px;
@@ -58,6 +68,10 @@
             transition: background .15s, box-shadow .17s;
             box-shadow:0 2px 9px #bcaaff14;
         }
+        #layer-menu button:hover {
+            background:#e9e0ff;
+            box-shadow:0 2px 9px #bcaaff40;
+        }
         #layer-menu button.active { background:#7a6fff; color:#fff; box-shadow:0 2px 9px #a899ff50; }
         /* نودها */
         .node circle { filter: drop-shadow(0 2px 9px #99b1eb32); transition:.2s; }
@@ -85,10 +99,11 @@
     </style>
 </head>
 <body>
+    <header class="page-header">داشبورد مدیریتی</header>
     <div class="summary-box">
         <b>خلاصه مدیریتی:</b>
         این داشبورد تعاملی، زنجیره علی و پیامدهای پروژه انتقال آب از کلات به مشهد را شفاف و بصری نمایش می‌دهد.<br>
-        با فیلتر لایه‌ها، مشاهده رفرنس‌ها و جزییات هر پیوند، مدیران می‌توانند در چند ثانیه کل سیستم و ریسک‌ها را تحلیل کنند.
+        با فیلتر لایه‌ها، مشاهده رفرنس‌ها و جزئیات هر پیوند، مدیران می‌توانند در چند ثانیه کل سیستم و ریسک‌ها را تحلیل کنند.
     </div>
     <div id="layer-menu">
       <button data-layer="all" class="active">همه لایه‌ها</button>
