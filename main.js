@@ -9,8 +9,13 @@ const layerColors = {
 
 // بارگذاری داده‌ها از data.json
 async function loadData() {
-  const response = await fetch('data.json');
-  return await response.json();
+  try {
+    const response = await fetch('data.json');
+    return await response.json();
+  } catch (err) {
+    console.error('Failed to load data.json', err);
+    return { nodes: [], links: [] };
+  }
 }
 
 let selectedLayer = 'all';

@@ -4,7 +4,16 @@ This project visualizes a network graph using D3.js.
 
 ## Running the App
 
-Open `index.html` in your browser to view the diagram.
+The application fetches `data.json`, so it should be served from a local web
+server instead of opening the file directly. If you have `http-server`
+installed, run:
+
+```bash
+npx http-server
+```
+
+Then open the shown URL (usually http://localhost:8080) in your browser.
+You can also use any other static server such as `python3 -m http.server`.
 
 ## Running Tests
 
