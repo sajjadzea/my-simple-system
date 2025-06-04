@@ -1,20 +1,4 @@
 
-let selectedLayer = 'all';
-let nodes = [];
-let links = [];
-let simulation;
-
-  // d3.forceLink mutates link objects by replacing source/target with node objects.
-  // When redrawing the graph we want clean links using node ids so we clone them
-  // before passing to the simulation.
-  const simLinks = filteredLinks.map(l => ({
-    ...l,
-    source: l.source.id || l.source,
-    target: l.target.id || l.target
-  }));
-
-  simulation = d3.forceSimulation(filteredNodes)
-    .force('link', d3.forceLink(simLinks).id(d => d.id).distance(220))
     .force('charge', d3.forceManyBody().strength(-630))
     .force('center', d3.forceCenter(width / 2, height / 2));
 
@@ -126,42 +110,4 @@ function showLinkInfo(link) {
   document.getElementById('info-panel').style.boxShadow = '0 8px 28px #ffd49c44';
 }
 
-if (typeof window !== 'undefined') {
-  window.addEventListener('DOMContentLoaded', async () => {
-    const data = await loadData();
-    nodes = data.nodes.map(n => Object.assign({}, n, { layer: findLayer(n) }));
-    links = data.links;
-    drawGraph();
 
-    const layerBtns = document.querySelectorAll('#layer-menu button');
-    layerBtns.forEach(btn => {
-      btn.addEventListener('click', function() {
-        layerBtns.forEach(b => b.classList.remove('active'));
-        this.classList.add('active');
-        selectedLayer = this.dataset.layer;
-        drawGraph();
-      });
-    });
-  });
-}
-
-function findLayer(node) {
-  if(node.layer) return node.layer;
-  if(node.label && node.label.match(/سیاسی|نماینده|مجلس|تصمیم/)) return 'political';
-  if(node.label && node.label.match(/اقتصاد|هزینه|تقاضا/)) return 'economic';
-  if(node.label && node.label.match(/محیط|زیست|جریان|تالاب|آب|بارش|اکوسیستم/)) return 'environment';
-  if(node.label && node.label.match(/اعتراض|اجتماعی|ذینفع|شغل|محلی/)) return 'social';
-  return 'environment';
-}
-// بستن پنل با کلیک خارج از گراف یا پنل
-if (typeof window !== 'undefined') {
-  window.addEventListener('click', (e) => {
-    if(e.target.closest('#diagram') || e.target.closest('#info-panel')) return;
-    document.getElementById('info-panel').style.boxShadow = '0 4px 16px #ffd59c30';
-    document.getElementById('panel-content').innerHTML = 'برای مشاهده توضیحات و رفرنس، روی هر گره یا یال کلیک کنید.';
-  });
-}
-
-if (typeof module !== 'undefined' && module.exports) {
-  module.exports = { filterNodes, filterLinks, findLayer };
-}
