@@ -125,7 +125,8 @@ function drawGraph() {
 }
 
 function dragstarted(event, d) {
-  if (!event.active) d.fx = d.x, d.fy = d.y;
+  d.fx = d.x;
+  d.fy = d.y;
 }
 function dragged(event, d) {
   d.fx = event.x;
