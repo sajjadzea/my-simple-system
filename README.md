@@ -1,6 +1,10 @@
 # My Simple System
 
-This project visualizes a network of nodes and links.
+This project visualizes a network of nodes and links. It provides a simple D3-based interface for exploring connections and includes sample tests for the helper functions.
+
+## Running the app
+
+Open `index.html` in your browser to view the interactive graph.
 
 ## Running tests
 
@@ -12,11 +16,9 @@ This project visualizes a network of nodes and links.
    ```bash
    npm test
    ```
-
-Execute the following command in the project root:
-
-```bash
-node tests/utils.test.js
-```
+   Or directly run:
+   ```bash
+   node tests/utils.test.js
+   ```
 
 This runs the small test suite verifying some utility functions in `main.js`.

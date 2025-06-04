@@ -52,9 +52,9 @@ function drawGraph() {
 
   const filteredNodes = filterNodes(nodes, selectedLayer);
   const filteredLinks = filterLinks(nodes, links, selectedLayer);
-  // d3.forceLink mutates link objects by replacing source/target with node objects.
-  // When redrawing the graph we want clean links using node ids so we clone them
-  // before passing to the simulation.
+  // تابع d3.forceLink آبجکت‌های لینک را تغییر می‌دهد و به جای شناسه‌ها گره‌ها را قرار می‌دهد.
+  // هنگام ترسیم مجدد گراف برای داشتن لینک‌های تمیز بر اساس شناسه گره، آن‌ها را کپی می‌کنیم
+  // و سپس به شبیه‌سازی می‌فرستیم.
   const simLinks = filteredLinks.map(l => ({
     ...l,
     source: l.source.id || l.source,
