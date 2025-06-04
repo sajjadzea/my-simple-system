@@ -141,7 +141,12 @@ function dragstarted(event, d) {
   d.fy = d.y;
 }
 function dragged(event, d) {
-
+  d.fx = Math.max(0, Math.min(WIDTH, event.x));
+  d.fy = Math.max(0, Math.min(HEIGHT, event.y));
+}
+function dragended(event, d) {
+  if (!event.active && simulation) {
+    simulation.alphaTarget(0).restart();
   }
   d.fx = null;
   d.fy = null;
@@ -225,6 +230,8 @@ if (typeof module !== 'undefined') {
     filterNodes,
     filterLinks,
     findLayer,
+    WIDTH,
+    HEIGHT,
 
     // exported for tests
     dragstarted,
