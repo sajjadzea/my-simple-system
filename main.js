@@ -141,7 +141,7 @@ function showNodeInfo(node) {
   const panel = document.getElementById('panel-content');
   let info = `<h2 style="color:#4834d4;font-size:19.5px;margin-bottom:8px">${node.label}</h2>`;
   if(node.description) info += `<p style="margin:0 0 10px 0;color:#333">${node.description}</p>`;
-  // منابع هر گره (در صورت داشتن refs)
+  // منابع هر گره (در صورت داشتن references)
   if(node.references && node.references.length) {
     info += '<ul style="margin:12px 0 0 0;padding-right:18px">';
     node.references.forEach(ref => {
