@@ -21,11 +21,11 @@ function filterNodes(nodes, layer) {
   if(layer === 'all') return nodes;
   return nodes.filter(n => n.layer === layer);
 }
-function filterLinks(links, layer) {
+function filterLinks(links, layer, nodeList = nodes) {
   if(layer === 'all') return links;
   // یال‌هایی که هر دو سرشان در لایه انتخاب‌شده باشد
   const layerIds = new Set(
-    nodes.filter(n => n.layer === layer).map(n => n.id)
+    (nodeList || nodes).filter(n => n.layer === layer).map(n => n.id)
   );
   return links.filter(l => {
     const src = l.source.id || l.source;
@@ -163,22 +163,24 @@ function showLinkInfo(link) {
   document.getElementById('info-panel').style.boxShadow = '0 8px 28px #ffd49c44';
 }
 
-window.addEventListener('DOMContentLoaded', async () => {
-  const data = await loadData();
-  nodes = data.nodes.map(n => Object.assign({}, n, { layer: findLayer(n) }));
-  links = data.links;
-  drawGraph();
+if (typeof window !== 'undefined') {
+  window.addEventListener('DOMContentLoaded', async () => {
+    const data = await loadData();
+    nodes = data.nodes.map(n => Object.assign({}, n, { layer: findLayer(n) }));
+    links = data.links;
+    drawGraph();
 
-  const layerBtns = document.querySelectorAll('#layer-menu button');
-  layerBtns.forEach(btn => {
-    btn.addEventListener('click', function() {
-      layerBtns.forEach(b => b.classList.remove('active'));
-      this.classList.add('active');
-      selectedLayer = this.dataset.layer;
-      drawGraph();
+    const layerBtns = document.querySelectorAll('#layer-menu button');
+    layerBtns.forEach(btn => {
+      btn.addEventListener('click', function() {
+        layerBtns.forEach(b => b.classList.remove('active'));
+        this.classList.add('active');
+        selectedLayer = this.dataset.layer;
+        drawGraph();
+      });
     });
   });
-});
+}
 
 function findLayer(node) {
   if(node.layer) return node.layer;
@@ -189,8 +191,14 @@ function findLayer(node) {
   return 'environment';
 }
 // بستن پنل با کلیک خارج از گراف یا پنل
-window.addEventListener('click', (e) => {
-  if(e.target.closest('#diagram') || e.target.closest('#info-panel')) return;
-  document.getElementById('info-panel').style.boxShadow = '0 4px 16px #ffd59c30';
-  document.getElementById('panel-content').innerHTML = 'برای مشاهده توضیحات و رفرنس، روی هر گره یا یال کلیک کنید.';
-});
+if (typeof window !== 'undefined') {
+  window.addEventListener('click', (e) => {
+    if(e.target.closest('#diagram') || e.target.closest('#info-panel')) return;
+    document.getElementById('info-panel').style.boxShadow = '0 4px 16px #ffd59c30';
+    document.getElementById('panel-content').innerHTML = 'برای مشاهده توضیحات و رفرنس، روی هر گره یا یال کلیک کنید.';
+  });
+}
+
+if (typeof module !== 'undefined') {
+  module.exports = { filterNodes, filterLinks, findLayer };
+}
