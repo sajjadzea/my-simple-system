@@ -1,66 +1,11 @@
-// main.js - نسخه نهایی ویژه پرزنت مدیریتی با فلش، رنگ، پنل اطلاعات و رفرنس
 
-const layerColors = {
-  political: '#7a6fff',
-  economic: '#ffd54f',
-  environment: '#48b5ae',
-  social: '#ef798a'
-};
-
-// بارگذاری داده‌ها از data.json
-async function loadData() {
-  const response = await fetch('data.json');
-  return await response.json();
-}
-
-let selectedLayer = 'all';
-let nodes = [];
-let links = [];
-const isBrowser = typeof window !== "undefined" && typeof document !== "undefined";
-
-function filterNodes(nodes, layer) {
-  if(layer === 'all') return nodes;
-  return nodes.filter(n => n.layer === layer);
-}
-function filterLinks(links, layer) {
-  if(layer === 'all') return links;
-  // یال‌هایی که هر دو سرشان در لایه انتخاب شده باشند
-  return links.filter(l => {
-    const s = nodes.find(n => n.id === (l.source.id || l.source));
-    const t = nodes.find(n => n.id === (l.target.id || l.target));
-    return s && t && s.layer === layer && t.layer === layer;
-  });
-}
-
-function drawGraph() {
-  d3.select('#diagram').selectAll('*').remove();
-  const width = 1100, height = 700;
-  const svg = d3.select('#diagram')
-    .attr('width', width)
-    .attr('height', height);
-
-  // --- تعریف فلش یال‌ها ---
-  svg.append('defs').html(`
-    <marker id="arrow-green" viewBox="0 -5 10 10" refX="36" refY="0" markerWidth="8" markerHeight="8" orient="auto" class="arrow">
-      <path d="M0,-5L10,0L0,5"></path>
-    </marker>
-    <marker id="arrow-red" viewBox="0 -5 10 10" refX="36" refY="0" markerWidth="8" markerHeight="8" orient="auto" class="arrow-red">
-      <path d="M0,-5L10,0L0,5"></path>
-    </marker>
-  `);
-
-  const filteredNodes = filterNodes(nodes, selectedLayer);
-  const filteredLinks = filterLinks(links, selectedLayer);
-
-  const simulation = d3.forceSimulation(filteredNodes)
-    .force('link', d3.forceLink(filteredLinks).id(d => d.id).distance(220))
     .force('charge', d3.forceManyBody().strength(-630))
     .force('center', d3.forceCenter(width / 2, height / 2));
 
   // --- یال‌ها ---
   const link = svg.append('g')
     .selectAll('line')
-    .data(filteredLinks)
+    .data(simLinks)
     .enter().append('line')
     .attr('class', d => 'link ' + (d.type === '+' ? 'positive' : 'negative'))
     .attr('stroke', d => d.type === '+' ? '#1aaf5d' : (d.type === '-' ? '#e14646' : '#888'))
@@ -115,14 +60,18 @@ function drawGraph() {
 }
 
 function dragstarted(event, d) {
-  if (!event.active) d.fx = d.x, d.fy = d.y;
+  d.fx = d.x;
+  d.fy = d.y;
 }
 function dragged(event, d) {
   d.fx = event.x;
   d.fy = event.y;
 }
 function dragended(event, d) {
-  if (!event.active) d.fx = null, d.fy = null;
+  if (!event.active) {
+    d.fx = null;
+    d.fy = null;
+  }
 }
 
 // نمایش اطلاعات گره در پنل کناری
@@ -130,7 +79,7 @@ function showNodeInfo(node) {
   const panel = document.getElementById('panel-content');
   let info = `<h2 style="color:#4834d4;font-size:19.5px;margin-bottom:8px">${node.label}</h2>`;
   if(node.description) info += `<p style="margin:0 0 10px 0;color:#333">${node.description}</p>`;
-  // منابع هر گره (در صورت داشتن refs)
+  // منابع هر گره (در صورت داشتن references)
   if(node.references && node.references.length) {
     info += '<ul style="margin:12px 0 0 0;padding-right:18px">';
     node.references.forEach(ref => {
@@ -159,44 +108,4 @@ function showLinkInfo(link) {
   }
   panel.innerHTML = info;
   document.getElementById('info-panel').style.boxShadow = '0 8px 28px #ffd49c44';
-}
-
-if (isBrowser) {
-window.addEventListener('DOMContentLoaded', async () => {
-  const data = await loadData();
-  nodes = data.nodes.map(n => Object.assign({}, n, { layer: findLayer(n) }));
-  links = data.links;
-  drawGraph();
-
-  const layerBtns = document.querySelectorAll('#layer-menu button');
-  layerBtns.forEach(btn => {
-    btn.addEventListener('click', function() {
-      layerBtns.forEach(b => b.classList.remove('active'));
-      this.classList.add('active');
-      selectedLayer = this.dataset.layer;
-      drawGraph();
-    });
-  });
-});
-
-// بستن پنل با کلیک خارج از گراف یا پنل
-window.addEventListener('click', (e) => {
-  if(e.target.closest('#diagram') || e.target.closest('#info-panel')) return;
-  document.getElementById('info-panel').style.boxShadow = '0 4px 16px #ffd59c30';
-  document.getElementById('panel-content').innerHTML = 'برای مشاهده توضیحات و رفرنس، روی هر گره یا یال کلیک کنید.';
-});
-} // isBrowser check
-
-function findLayer(node) {
-  if(node.layer) return node.layer;
-  if(node.label && node.label.match(/سیاسی|نماینده|مجلس|تصمیم/)) return 'political';
-  if(node.label && node.label.match(/اقتصاد|هزینه|تقاضا/)) return 'economic';
-  if(node.label && node.label.match(/محیط|زیست|جریان|تالاب|آب|بارش|اکوسیستم/)) return 'environment';
-  if(node.label && node.label.match(/اعتراض|اجتماعی|ذینفع|شغل|محلی/)) return 'social';
-  return 'environment';
-}
-
-// Allow basic unit tests under Node
-if (typeof module !== 'undefined' && module.exports) {
-  module.exports = { filterNodes, filterLinks, findLayer };
 }
