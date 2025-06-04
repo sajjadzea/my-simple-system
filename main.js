@@ -22,15 +22,16 @@ function filterNodes(nodes, layer) {
   return nodes.filter(n => n.layer === layer);
 }
 function filterLinks(links, layer) {
-  if(layer === 'all') return links;
-  // یال‌هایی که هر دو سرشان در لایه انتخاب‌شده باشد
-  const layerIds = new Set(
-    nodes.filter(n => n.layer === layer).map(n => n.id)
-  );
+  if (layer === 'all') return links;
+  // یال‌هایی که هر دو سر آن در لایه انتخاب‌شده باشد
   return links.filter(l => {
-    const src = l.source.id || l.source;
-    const tgt = l.target.id || l.target;
-    return layerIds.has(src) && layerIds.has(tgt);
+    const srcId = l.source.id || l.source;
+    const tgtId = l.target.id || l.target;
+    const srcNode = nodes.find(n => n.id === srcId);
+    const tgtNode = nodes.find(n => n.id === tgtId);
+    return srcNode && tgtNode &&
+           srcNode.layer === layer &&
+           tgtNode.layer === layer;
   });
 }
 
