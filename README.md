@@ -1,11 +1,17 @@
 # My Simple System
 
+This project visualizes a network of nodes and links.
+
 ## Running tests
 
-Execute the following command in the project root:
+1. Install dependencies:
+   ```bash
+   npm install
+   ```
 
-```bash
-node tests/utils.test.js
-```
+2. Execute the following command in the project root:
+   ```bash
+   node tests/utils.test.js
+   ```
 
 This runs the small test suite verifying some utility functions in `main.js`.
