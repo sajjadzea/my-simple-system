@@ -20,7 +20,7 @@ const links = [
   { source: 'c', target: 'a', type: '+' }
 ];
 
-const filtered = filterLinks(links, 'environment', global.nodes);
+const filtered = filterLinks(global.nodes, links, 'environment');
 assert.deepStrictEqual(filtered, [ { source: 'a', target: 'b', type: '+' } ]);
 
 console.log('All tests passed!');
