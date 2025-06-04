@@ -16,6 +16,7 @@ async function loadData() {
 let selectedLayer = 'all';
 let nodes = [];
 let links = [];
+const isBrowser = typeof window !== "undefined" && typeof document !== "undefined";
 
 function filterNodes(nodes, layer) {
   if(layer === 'all') return nodes;
@@ -160,7 +161,7 @@ function showLinkInfo(link) {
   document.getElementById('info-panel').style.boxShadow = '0 8px 28px #ffd49c44';
 }
 
-if (typeof window !== 'undefined') {
+if (isBrowser) {
 window.addEventListener('DOMContentLoaded', async () => {
   const data = await loadData();
   nodes = data.nodes.map(n => Object.assign({}, n, { layer: findLayer(n) }));
@@ -184,7 +185,7 @@ window.addEventListener('click', (e) => {
   document.getElementById('info-panel').style.boxShadow = '0 4px 16px #ffd59c30';
   document.getElementById('panel-content').innerHTML = 'برای مشاهده توضیحات و رفرنس، روی هر گره یا یال کلیک کنید.';
 });
-} // typeof window !== 'undefined'
+} // isBrowser check
 
 function findLayer(node) {
   if(node.layer) return node.layer;
