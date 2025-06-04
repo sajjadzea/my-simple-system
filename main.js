@@ -7,6 +7,9 @@ const layerColors = {
   social: '#ef798a'
 };
 
+const WIDTH = 1100;
+const HEIGHT = 700;
+
 // بارگذاری داده‌ها از data.json
 async function loadData() {
   const response = await fetch('data.json');
@@ -34,14 +37,17 @@ function filterLinks(nodeList, linkList, layer) {
 }
 
 function drawGraph() {
+  // Clear existing SVG contents and stop any previous simulation
   d3.select('#diagram').selectAll('*').remove();
   if (simulation) {
     simulation.stop();
+    // remove previous tick listener to avoid memory leaks
+    simulation.on('tick', null);
+    simulation = null;
   }
-  const width = 1100, height = 700;
   const svg = d3.select('#diagram')
-    .attr('width', width)
-    .attr('height', height);
+    .attr('width', WIDTH)
+    .attr('height', HEIGHT);
 
   // --- تعریف فلش یال‌ها ---
   svg.append('defs').html(`
@@ -67,7 +73,7 @@ function drawGraph() {
   simulation = d3.forceSimulation(filteredNodes)
     .force('link', d3.forceLink(simLinks).id(d => d.id).distance(220))
     .force('charge', d3.forceManyBody().strength(-630))
-    .force('center', d3.forceCenter(width / 2, height / 2));
+    .force('center', d3.forceCenter(WIDTH / 2, HEIGHT / 2));
 
   // --- یال‌ها ---
   const link = svg.append('g')
@@ -127,18 +133,23 @@ function drawGraph() {
 }
 
 function dragstarted(event, d) {
+  if (!event.active && simulation) {
+    // keep simulation running so layout stays responsive
+    simulation.alphaTarget(0.3).restart();
+  }
   d.fx = d.x;
   d.fy = d.y;
 }
 function dragged(event, d) {
-  d.fx = event.x;
-  d.fy = event.y;
+  d.fx = Math.max(0, Math.min(WIDTH, event.x));
+  d.fy = Math.max(0, Math.min(HEIGHT, event.y));
 }
 function dragended(event, d) {
-  if (!event.active) {
-    d.fx = null;
-    d.fy = null;
+  if (!event.active && simulation) {
+    simulation.alphaTarget(0).restart();
   }
+  d.fx = null;
+  d.fy = null;
 }
 
 // نمایش اطلاعات گره در پنل کناری
@@ -214,5 +225,17 @@ if (typeof window !== 'undefined') {
 }
 
 if (typeof module !== 'undefined') {
-  module.exports = { filterNodes, filterLinks, findLayer };
+  function __setSimulation(sim) { simulation = sim; }
+  module.exports = {
+    filterNodes,
+    filterLinks,
+    findLayer,
+    WIDTH,
+    HEIGHT,
+    // exported for tests
+    dragstarted,
+    dragged,
+    dragended,
+    __setSimulation
+  };
 }
