@@ -23,10 +23,11 @@ function filterNodes(nodes, layer) {
 }
 function filterLinks(links, layer) {
   if(layer === 'all') return links;
-  // فقط یال‌هایی که مبداشان در همان لایه است
+  // یال‌هایی که هر دو سرشان در لایه انتخاب شده باشند
   return links.filter(l => {
     const s = nodes.find(n => n.id === (l.source.id || l.source));
-    return s && s.layer === layer;
+    const t = nodes.find(n => n.id === (l.target.id || l.target));
+    return s && t && s.layer === layer && t.layer === layer;
   });
 }
 
