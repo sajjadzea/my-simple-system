@@ -1,4 +1,71 @@
+// main.js - نسخه نهایی ویژه پرزنت مدیریتی با فلش، رنگ، پنل اطلاعات و رفرنس
 
+const layerColors = {
+  political: '#7a6fff',
+  economic: '#ffd54f',
+  environment: '#48b5ae',
+  social: '#ef798a'
+};
+
+// بارگذاری داده‌ها از data.json
+async function loadData() {
+  const response = await fetch('data.json');
+  return await response.json();
+}
+
+let selectedLayer = 'all';
+let nodes = [];
+let links = [];
+let simulation;
+
+function filterNodes(nodeList, layer) {
+  if (layer === 'all') return nodeList;
+  return nodeList.filter(n => n.layer === layer);
+}
+
+// فیلترکردن یال‌ها بر اساس لایه‌ی گره‌های مبدا و مقصد
+function filterLinks(nodeList, linkList, layer) {
+  if (layer === 'all') return linkList;
+  return linkList.filter(l => {
+    const sourceNode = nodeList.find(n => n.id === (l.source.id || l.source));
+    const targetNode = nodeList.find(n => n.id === (l.target.id || l.target));
+    return sourceNode && targetNode && sourceNode.layer === layer && targetNode.layer === layer;
+  });
+}
+
+function drawGraph() {
+  d3.select('#diagram').selectAll('*').remove();
+  if (simulation) {
+    simulation.stop();
+  }
+  const width = 1100, height = 700;
+  const svg = d3.select('#diagram')
+    .attr('width', width)
+    .attr('height', height);
+
+  // --- تعریف فلش یال‌ها ---
+  svg.append('defs').html(`
+    <marker id="arrow-green" viewBox="0 -5 10 10" refX="36" refY="0" markerWidth="8" markerHeight="8" orient="auto" class="arrow">
+      <path d="M0,-5L10,0L0,5"></path>
+    </marker>
+    <marker id="arrow-red" viewBox="0 -5 10 10" refX="36" refY="0" markerWidth="8" markerHeight="8" orient="auto" class="arrow-red">
+      <path d="M0,-5L10,0L0,5"></path>
+    </marker>
+  `);
+
+  const filteredNodes = filterNodes(nodes, selectedLayer);
+  const filteredLinks = filterLinks(nodes, links, selectedLayer);
+  // d3.forceLink mutates link objects by replacing source/target with node objects.
+  // When redrawing the graph we want clean links using node ids so we clone them
+  // before passing to the simulation.
+  const simLinks = filteredLinks.map(l => ({
+    ...l,
+    source: l.source.id || l.source,
+    target: l.target.id || l.target
+  }));
+
+  simulation = d3.forceSimulation(filteredNodes)
+    .force('link', d3.forceLink(simLinks).id(d => d.id).distance(220))
     .force('charge', d3.forceManyBody().strength(-630))
     .force('center', d3.forceCenter(width / 2, height / 2));
 
@@ -110,3 +177,42 @@ function showLinkInfo(link) {
   document.getElementById('info-panel').style.boxShadow = '0 8px 28px #ffd49c44';
 }
 
+if (typeof window !== 'undefined') {
+  window.addEventListener('DOMContentLoaded', async () => {
+    const data = await loadData();
+    nodes = data.nodes.map(n => Object.assign({}, n, { layer: findLayer(n) }));
+    links = data.links;
+    drawGraph();
+
+    const layerBtns = document.querySelectorAll('#layer-menu button');
+    layerBtns.forEach(btn => {
+      btn.addEventListener('click', function() {
+        layerBtns.forEach(b => b.classList.remove('active'));
+        this.classList.add('active');
+        selectedLayer = this.dataset.layer;
+        drawGraph();
+      });
+    });
+  });
+}
+
+function findLayer(node) {
+  if(node.layer) return node.layer;
+  if(node.label && node.label.match(/سیاسی|نماینده|مجلس|تصمیم/)) return 'political';
+  if(node.label && node.label.match(/اقتصاد|هزینه|تقاضا/)) return 'economic';
+  if(node.label && node.label.match(/محیط|زیست|جریان|تالاب|آب|بارش|اکوسیستم/)) return 'environment';
+  if(node.label && node.label.match(/اعتراض|اجتماعی|ذینفع|شغل|محلی/)) return 'social';
+  return 'environment';
+}
+// بستن پنل با کلیک خارج از گراف یا پنل
+if (typeof window !== 'undefined') {
+  window.addEventListener('click', (e) => {
+    if(e.target.closest('#diagram') || e.target.closest('#info-panel')) return;
+    document.getElementById('info-panel').style.boxShadow = '0 4px 16px #ffd59c30';
+    document.getElementById('panel-content').innerHTML = 'برای مشاهده توضیحات و رفرنس، روی هر گره یا یال کلیک کنید.';
+  });
+}
+
+if (typeof module !== 'undefined') {
+  module.exports = { filterNodes, filterLinks, findLayer };
+}
