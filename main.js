@@ -17,6 +17,14 @@ let selectedLayer = 'all';
 let nodes = [];
 let links = [];
 let simulation;
+function findLayer(node) {
+  if(node.layer) return node.layer;
+  if(node.label && node.label.match(/سیاسی|نماینده|مجلس|تصمیم/)) return 'political';
+  if(node.label && node.label.match(/اقتصاد|هزینه|تقاضا/)) return 'economic';
+  if(node.label && node.label.match(/محیط|زیست|جریان|تالاب|آب|بارش|اکوسیستم/)) return 'environment';
+  if(node.label && node.label.match(/اعتراض|اجتماعی|ذینفع|شغل|محلی/)) return 'social';
+  return 'environment';
+}
 
 function filterNodes(nodeList, layer) {
   if (layer === 'all') return nodeList;
@@ -26,10 +34,13 @@ function filterNodes(nodeList, layer) {
 // فیلترکردن یال‌ها بر اساس لایه‌ی گره‌های مبدا و مقصد
 function filterLinks(nodeList, linkList, layer) {
   if (layer === 'all') return linkList;
+  const layerIds = new Set(
+    nodeList.filter(n => n.layer === layer).map(n => n.id)
+  );
   return linkList.filter(l => {
-    const sourceNode = nodeList.find(n => n.id === (l.source.id || l.source));
-    const targetNode = nodeList.find(n => n.id === (l.target.id || l.target));
-    return sourceNode && targetNode && sourceNode.layer === layer && targetNode.layer === layer;
+    const src = l.source.id || l.source;
+    const tgt = l.target.id || l.target;
+    return layerIds.has(src) && layerIds.has(tgt);
   });
 }
 
@@ -193,14 +204,6 @@ if (typeof window !== 'undefined') {
   });
 }
 
-function findLayer(node) {
-  if(node.layer) return node.layer;
-  if(node.label && node.label.match(/سیاسی|نماینده|مجلس|تصمیم/)) return 'political';
-  if(node.label && node.label.match(/اقتصاد|هزینه|تقاضا/)) return 'economic';
-  if(node.label && node.label.match(/محیط|زیست|جریان|تالاب|آب|بارش|اکوسیستم/)) return 'environment';
-  if(node.label && node.label.match(/اعتراض|اجتماعی|ذینفع|شغل|محلی/)) return 'social';
-  return 'environment';
-}
 // بستن پنل با کلیک خارج از گراف یا پنل
 if (typeof window !== 'undefined') {
   window.addEventListener('click', (e) => {
