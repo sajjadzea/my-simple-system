@@ -160,6 +160,7 @@ function showLinkInfo(link) {
   document.getElementById('info-panel').style.boxShadow = '0 8px 28px #ffd49c44';
 }
 
+if (typeof window !== 'undefined') {
 window.addEventListener('DOMContentLoaded', async () => {
   const data = await loadData();
   nodes = data.nodes.map(n => Object.assign({}, n, { layer: findLayer(n) }));
@@ -177,6 +178,14 @@ window.addEventListener('DOMContentLoaded', async () => {
   });
 });
 
+// بستن پنل با کلیک خارج از گراف یا پنل
+window.addEventListener('click', (e) => {
+  if(e.target.closest('#diagram') || e.target.closest('#info-panel')) return;
+  document.getElementById('info-panel').style.boxShadow = '0 4px 16px #ffd59c30';
+  document.getElementById('panel-content').innerHTML = 'برای مشاهده توضیحات و رفرنس، روی هر گره یا یال کلیک کنید.';
+});
+} // typeof window !== 'undefined'
+
 function findLayer(node) {
   if(node.layer) return node.layer;
   if(node.label && node.label.match(/سیاسی|نماینده|مجلس|تصمیم/)) return 'political';
@@ -185,9 +194,3 @@ function findLayer(node) {
   if(node.label && node.label.match(/اعتراض|اجتماعی|ذینفع|شغل|محلی/)) return 'social';
   return 'environment';
 }
-// بستن پنل با کلیک خارج از گراف یا پنل
-window.addEventListener('click', (e) => {
-  if(e.target.closest('#diagram') || e.target.closest('#info-panel')) return;
-  document.getElementById('info-panel').style.boxShadow = '0 4px 16px #ffd59c30';
-  document.getElementById('panel-content').innerHTML = 'برای مشاهده توضیحات و رفرنس، روی هر گره یا یال کلیک کنید.';
-});
