@@ -7,6 +7,9 @@ const layerColors = {
   social: '#ef798a'
 };
 
+const WIDTH = 1100;
+const HEIGHT = 700;
+
 // بارگذاری داده‌ها از data.json
 async function loadData() {
   const response = await fetch('data.json');
@@ -40,11 +43,11 @@ function drawGraph() {
     simulation.stop();
     // remove previous tick listener to avoid memory leaks
     simulation.on('tick', null);
+
   }
-  const width = 1100, height = 700;
   const svg = d3.select('#diagram')
-    .attr('width', width)
-    .attr('height', height);
+    .attr('width', WIDTH)
+    .attr('height', HEIGHT);
 
   // --- تعریف فلش یال‌ها ---
   svg.append('defs').html(`
@@ -70,7 +73,7 @@ function drawGraph() {
   simulation = d3.forceSimulation(filteredNodes)
     .force('link', d3.forceLink(simLinks).id(d => d.id).distance(220))
     .force('charge', d3.forceManyBody().strength(-630))
-    .force('center', d3.forceCenter(width / 2, height / 2));
+    .force('center', d3.forceCenter(WIDTH / 2, HEIGHT / 2));
 
   // --- یال‌ها ---
   const link = svg.append('g')
@@ -138,12 +141,7 @@ function dragstarted(event, d) {
   d.fy = d.y;
 }
 function dragged(event, d) {
-  d.fx = event.x;
-  d.fy = event.y;
-}
-function dragended(event, d) {
-  if (!event.active && simulation) {
-    simulation.alphaTarget(0);
+
   }
   d.fx = null;
   d.fy = null;
@@ -227,6 +225,7 @@ if (typeof module !== 'undefined') {
     filterNodes,
     filterLinks,
     findLayer,
+
     // exported for tests
     dragstarted,
     dragged,
