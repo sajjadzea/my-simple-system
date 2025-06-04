@@ -16,17 +16,20 @@ async function loadData() {
 let selectedLayer = 'all';
 let nodes = [];
 let links = [];
+let simulation;
+const isBrowser = typeof window !== "undefined" && typeof document !== "undefined";
 
 function filterNodes(nodes, layer) {
   if(layer === 'all') return nodes;
   return nodes.filter(n => n.layer === layer);
 }
-function filterLinks(links, layer) {
-  if(layer === 'all') return links;
-  // فقط یال‌هایی که مبداشان در همان لایه است
-  return links.filter(l => {
-    const s = nodes.find(n => n.id === (l.source.id || l.source));
-    return s && s.layer === layer;
+function filterLinks(nodeList, linkList, layer) {
+  if(layer === 'all') return linkList;
+  // یال‌هایی که هر دو سرشان در لایه انتخاب شده باشند
+  return linkList.filter(l => {
+    const s = nodeList.find(n => n.id === (l.source.id || l.source));
+    const t = nodeList.find(n => n.id === (l.target.id || l.target));
+    return s && t && s.layer === layer && t.layer === layer;
   });
 }
 
@@ -48,17 +51,23 @@ function drawGraph() {
   `);
 
   const filteredNodes = filterNodes(nodes, selectedLayer);
-  const filteredLinks = filterLinks(links, selectedLayer);
+  const filteredLinks = filterLinks(nodes, links, selectedLayer);
 
-  const simulation = d3.forceSimulation(filteredNodes)
-    .force('link', d3.forceLink(filteredLinks).id(d => d.id).distance(220))
+  if (simulation) simulation.stop();
+  const simLinks = filteredLinks.map(l => ({
+    ...l,
+    source: l.source.id || l.source,
+    target: l.target.id || l.target
+  }));
+  simulation = d3.forceSimulation(filteredNodes)
+    .force('link', d3.forceLink(simLinks).id(d => d.id).distance(220))
     .force('charge', d3.forceManyBody().strength(-630))
     .force('center', d3.forceCenter(width / 2, height / 2));
 
   // --- یال‌ها ---
   const link = svg.append('g')
     .selectAll('line')
-    .data(filteredLinks)
+    .data(simLinks)
     .enter().append('line')
     .attr('class', d => 'link ' + (d.type === '+' ? 'positive' : 'negative'))
     .attr('stroke', d => d.type === '+' ? '#1aaf5d' : (d.type === '-' ? '#e14646' : '#888'))
@@ -159,6 +168,7 @@ function showLinkInfo(link) {
   document.getElementById('info-panel').style.boxShadow = '0 8px 28px #ffd49c44';
 }
 
+if (isBrowser) {
 window.addEventListener('DOMContentLoaded', async () => {
   const data = await loadData();
   nodes = data.nodes.map(n => Object.assign({}, n, { layer: findLayer(n) }));
@@ -176,6 +186,14 @@ window.addEventListener('DOMContentLoaded', async () => {
   });
 });
 
+// بستن پنل با کلیک خارج از گراف یا پنل
+window.addEventListener('click', (e) => {
+  if(e.target.closest('#diagram') || e.target.closest('#info-panel')) return;
+  document.getElementById('info-panel').style.boxShadow = '0 4px 16px #ffd59c30';
+  document.getElementById('panel-content').innerHTML = 'برای مشاهده توضیحات و رفرنس، روی هر گره یا یال کلیک کنید.';
+});
+} // isBrowser check
+
 function findLayer(node) {
   if(node.layer) return node.layer;
   if(node.label && node.label.match(/سیاسی|نماینده|مجلس|تصمیم/)) return 'political';
@@ -184,9 +202,8 @@ function findLayer(node) {
   if(node.label && node.label.match(/اعتراض|اجتماعی|ذینفع|شغل|محلی/)) return 'social';
   return 'environment';
 }
-// بستن پنل با کلیک خارج از گراف یا پنل
-window.addEventListener('click', (e) => {
-  if(e.target.closest('#diagram') || e.target.closest('#info-panel')) return;
-  document.getElementById('info-panel').style.boxShadow = '0 4px 16px #ffd59c30';
-  document.getElementById('panel-content').innerHTML = 'برای مشاهده توضیحات و رفرنس، روی هر گره یا یال کلیک کنید.';
-});
+
+// Allow basic unit tests under Node
+if (typeof module !== 'undefined' && module.exports) {
+  module.exports = { filterNodes, filterLinks, findLayer };
+}
