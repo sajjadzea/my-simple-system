@@ -23,10 +23,14 @@ function filterNodes(nodes, layer) {
 }
 function filterLinks(links, layer) {
   if(layer === 'all') return links;
-  // فقط یال‌هایی که مبداشان در همان لایه است
+  // یال‌هایی که هر دو سرشان در لایه انتخاب‌شده باشد
+  const layerIds = new Set(
+    nodes.filter(n => n.layer === layer).map(n => n.id)
+  );
   return links.filter(l => {
-    const s = nodes.find(n => n.id === (l.source.id || l.source));
-    return s && s.layer === layer;
+    const src = l.source.id || l.source;
+    const tgt = l.target.id || l.target;
+    return layerIds.has(src) && layerIds.has(tgt);
   });
 }
 
