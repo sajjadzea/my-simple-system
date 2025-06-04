@@ -49,16 +49,24 @@ function drawGraph() {
 
   const filteredNodes = filterNodes(nodes, selectedLayer);
   const filteredLinks = filterLinks(links, selectedLayer);
+  // d3.forceLink mutates link objects by replacing source/target with node objects.
+  // When redrawing the graph we want clean links using node ids so we clone them
+  // before passing to the simulation.
+  const simLinks = filteredLinks.map(l => ({
+    ...l,
+    source: l.source.id || l.source,
+    target: l.target.id || l.target
+  }));
 
   const simulation = d3.forceSimulation(filteredNodes)
-    .force('link', d3.forceLink(filteredLinks).id(d => d.id).distance(220))
+    .force('link', d3.forceLink(simLinks).id(d => d.id).distance(220))
     .force('charge', d3.forceManyBody().strength(-630))
     .force('center', d3.forceCenter(width / 2, height / 2));
 
   // --- یال‌ها ---
   const link = svg.append('g')
     .selectAll('line')
-    .data(filteredLinks)
+    .data(simLinks)
     .enter().append('line')
     .attr('class', d => 'link ' + (d.type === '+' ? 'positive' : 'negative'))
     .attr('stroke', d => d.type === '+' ? '#1aaf5d' : (d.type === '-' ? '#e14646' : '#888'))
