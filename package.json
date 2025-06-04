@@ -3,9 +3,7 @@
   "version": "1.0.0",
   "description": "",
   "main": "main.js",
-  "directories": {
-    "test": "tests"
-  },
+
   "scripts": {
     "test": "jest"
   },
