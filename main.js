@@ -24,16 +24,12 @@ function filterNodes(nodeList, layer) {
 }
 
 // فیلترکردن یال‌ها بر اساس لایه‌ی گره‌های مبدا و مقصد
-function filterLinks(linkList, layer, nodeList) {
+function filterLinks(nodeList, linkList, layer) {
   if (layer === 'all') return linkList;
-  const nodesToCheck = nodeList || nodes;
-  const layerIds = new Set(
-    nodesToCheck.filter(n => n.layer === layer).map(n => n.id)
-  );
   return linkList.filter(l => {
-    const src = l.source.id || l.source;
-    const tgt = l.target.id || l.target;
-    return layerIds.has(src) && layerIds.has(tgt);
+    const sourceNode = nodeList.find(n => n.id === (l.source.id || l.source));
+    const targetNode = nodeList.find(n => n.id === (l.target.id || l.target));
+    return sourceNode && targetNode && sourceNode.layer === layer && targetNode.layer === layer;
   });
 }
 
@@ -58,7 +54,7 @@ function drawGraph() {
   `);
 
   const filteredNodes = filterNodes(nodes, selectedLayer);
-  const filteredLinks = filterLinks(links, selectedLayer);
+  const filteredLinks = filterLinks(nodes, links, selectedLayer);
   // d3.forceLink mutates link objects by replacing source/target with node objects.
   // When redrawing the graph we want clean links using node ids so we clone them
   // before passing to the simulation.
