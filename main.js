@@ -195,3 +195,8 @@ function findLayer(node) {
   if(node.label && node.label.match(/اعتراض|اجتماعی|ذینفع|شغل|محلی/)) return 'social';
   return 'environment';
 }
+
+// Allow basic unit tests under Node
+if (typeof module !== 'undefined' && module.exports) {
+  module.exports = { filterNodes, filterLinks, findLayer };
+}
