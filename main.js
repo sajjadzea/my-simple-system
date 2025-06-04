@@ -34,9 +34,12 @@ function filterLinks(nodeList, linkList, layer) {
 }
 
 function drawGraph() {
+  // Clear existing SVG contents and stop any previous simulation
   d3.select('#diagram').selectAll('*').remove();
   if (simulation) {
     simulation.stop();
+    // remove previous tick listener to avoid memory leaks
+    simulation.on('tick', null);
   }
   const width = 1100, height = 700;
   const svg = d3.select('#diagram')
@@ -127,6 +130,10 @@ function drawGraph() {
 }
 
 function dragstarted(event, d) {
+  if (!event.active && simulation) {
+    // keep simulation running so layout stays responsive
+    simulation.alphaTarget(0.3).restart();
+  }
   d.fx = d.x;
   d.fy = d.y;
 }
@@ -135,10 +142,11 @@ function dragged(event, d) {
   d.fy = event.y;
 }
 function dragended(event, d) {
-  if (!event.active) {
-    d.fx = null;
-    d.fy = null;
+  if (!event.active && simulation) {
+    simulation.alphaTarget(0);
   }
+  d.fx = null;
+  d.fy = null;
 }
 
 // نمایش اطلاعات گره در پنل کناری
@@ -214,5 +222,15 @@ if (typeof window !== 'undefined') {
 }
 
 if (typeof module !== 'undefined') {
-  module.exports = { filterNodes, filterLinks, findLayer };
+  function __setSimulation(sim) { simulation = sim; }
+  module.exports = {
+    filterNodes,
+    filterLinks,
+    findLayer,
+    // exported for tests
+    dragstarted,
+    dragged,
+    dragended,
+    __setSimulation
+  };
 }
