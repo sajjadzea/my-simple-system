@@ -109,4 +109,3 @@ function showLinkInfo(link) {
   panel.innerHTML = info;
   document.getElementById('info-panel').style.boxShadow = '0 8px 28px #ffd49c44';
 }
-
