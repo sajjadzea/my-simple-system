@@ -1,62 +1,9 @@
-// main.js - نسخه نهایی ویژه پرزنت مدیریتی با فلش، رنگ، پنل اطلاعات و رفرنس
-
-const layerColors = {
-  political: '#7a6fff',
-  economic: '#ffd54f',
-  environment: '#48b5ae',
-  social: '#ef798a'
-};
-
-// بارگذاری داده‌ها از data.json
-async function loadData() {
-  try {
-    const response = await fetch('data.json');
-    return await response.json();
-  } catch (err) {
-    console.error('Failed to load data.json', err);
-    return { nodes: [], links: [] };
-  }
-}
 
 let selectedLayer = 'all';
 let nodes = [];
 let links = [];
 let simulation;
 
-function filterNodes(nodeList, layer) {
-  if (layer === 'all') return nodeList;
-  return nodeList.filter(n => n.layer === layer);
-}
-
-// فیلترکردن یال‌ها بر اساس لایه‌ی گره‌های مبدا و مقصد
-function filterLinks(nodeList, linkList, layer) {
-  if (layer === 'all') return linkList;
-  return linkList.filter(l => {
-    const sourceNode = nodeList.find(n => n.id === (l.source.id || l.source));
-    const targetNode = nodeList.find(n => n.id === (l.target.id || l.target));
-    return sourceNode && targetNode && sourceNode.layer === layer && targetNode.layer === layer;
-  });
-}
-
-function drawGraph() {
-  d3.select('#diagram').selectAll('*').remove();
-  const width = 1100, height = 700;
-  const svg = d3.select('#diagram')
-    .attr('width', width)
-    .attr('height', height);
-
-  // --- تعریف فلش یال‌ها ---
-  svg.append('defs').html(`
-    <marker id="arrow-green" viewBox="0 -5 10 10" refX="36" refY="0" markerWidth="8" markerHeight="8" orient="auto" class="arrow">
-      <path d="M0,-5L10,0L0,5"></path>
-    </marker>
-    <marker id="arrow-red" viewBox="0 -5 10 10" refX="36" refY="0" markerWidth="8" markerHeight="8" orient="auto" class="arrow-red">
-      <path d="M0,-5L10,0L0,5"></path>
-    </marker>
-  `);
-
-  const filteredNodes = filterNodes(nodes, selectedLayer);
-  const filteredLinks = filterLinks(nodes, links, selectedLayer);
   // d3.forceLink mutates link objects by replacing source/target with node objects.
   // When redrawing the graph we want clean links using node ids so we clone them
   // before passing to the simulation.
