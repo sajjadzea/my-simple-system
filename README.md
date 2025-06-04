@@ -23,7 +23,7 @@ Then open the shown URL (usually http://localhost:8080) in your browser. You can
    npm test
    ```
 
-You can also run the assertion script directly:
+Alternatively, you can run the assertion script directly from the project root:
 
 ```bash
 node tests/utils.test.js
