@@ -139,7 +139,10 @@ function dragged(event, d) {
   d.fy = event.y;
 }
 function dragended(event, d) {
-  if (!event.active) d.fx = null, d.fy = null;
+  if (!event.active) {
+    d.fx = null;
+    d.fy = null;
+  }
 }
 
 // نمایش اطلاعات گره در پنل کناری
