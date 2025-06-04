@@ -35,9 +35,6 @@ function filterLinks(nodeList, linkList, layer) {
 
 function drawGraph() {
   d3.select('#diagram').selectAll('*').remove();
-  if (simulation) {
-    simulation.stop();
-  }
   const width = 1100, height = 700;
   const svg = d3.select('#diagram')
     .attr('width', width)
