@@ -110,4 +110,3 @@ function showLinkInfo(link) {
   document.getElementById('info-panel').style.boxShadow = '0 8px 28px #ffd49c44';
 }
 
-
