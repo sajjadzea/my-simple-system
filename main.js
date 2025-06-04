@@ -17,17 +17,19 @@ let selectedLayer = 'all';
 let nodes = [];
 let links = [];
 
-function filterNodes(nodes, layer) {
-  if(layer === 'all') return nodes;
-  return nodes.filter(n => n.layer === layer);
+function filterNodes(nodeList, layer) {
+  if (layer === 'all') return nodeList;
+  return nodeList.filter(n => n.layer === layer);
 }
-function filterLinks(links, layer, nodeList = nodes) {
-  if(layer === 'all') return links;
-  // یال‌هایی که هر دو سرشان در لایه انتخاب‌شده باشد
+
+// فیلترکردن یال‌ها بر اساس لایه‌ی گره‌های مبدا و مقصد
+function filterLinks(linkList, layer, nodeList) {
+  if (layer === 'all') return linkList;
+  const nodesToCheck = nodeList || nodes;
   const layerIds = new Set(
-    (nodeList || nodes).filter(n => n.layer === layer).map(n => n.id)
+    nodesToCheck.filter(n => n.layer === layer).map(n => n.id)
   );
-  return links.filter(l => {
+  return linkList.filter(l => {
     const src = l.source.id || l.source;
     const tgt = l.target.id || l.target;
     return layerIds.has(src) && layerIds.has(tgt);
