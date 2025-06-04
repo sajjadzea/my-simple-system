@@ -16,6 +16,7 @@ async function loadData() {
 let selectedLayer = 'all';
 let nodes = [];
 let links = [];
+let simulation;
 
 function filterNodes(nodeList, layer) {
   if (layer === 'all') return nodeList;
@@ -38,6 +39,9 @@ function filterLinks(linkList, layer, nodeList) {
 
 function drawGraph() {
   d3.select('#diagram').selectAll('*').remove();
+  if (simulation) {
+    simulation.stop();
+  }
   const width = 1100, height = 700;
   const svg = d3.select('#diagram')
     .attr('width', width)
@@ -64,7 +68,7 @@ function drawGraph() {
     target: l.target.id || l.target
   }));
 
-  const simulation = d3.forceSimulation(filteredNodes)
+  simulation = d3.forceSimulation(filteredNodes)
     .force('link', d3.forceLink(simLinks).id(d => d.id).distance(220))
     .force('charge', d3.forceManyBody().strength(-630))
     .force('center', d3.forceCenter(width / 2, height / 2));
