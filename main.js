@@ -3,9 +3,7 @@
     .force('center', d3.forceCenter(width / 2, height / 2));
 
   // --- یال‌ها ---
-  const link = svg.append('g')
-    .selectAll('line')
-    .data(simLinks)
+
     .enter().append('line')
     .attr('class', d => 'link ' + (d.type === '+' ? 'positive' : 'negative'))
     .attr('stroke', d => d.type === '+' ? '#1aaf5d' : (d.type === '-' ? '#e14646' : '#888'))
