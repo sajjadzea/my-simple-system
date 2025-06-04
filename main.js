@@ -22,14 +22,14 @@ function filterNodes(nodeList, layer) {
   if(layer === 'all') return nodeList;
   return nodeList.filter(n => n.layer === layer);
 }
-function filterLinks(linkList, layer, nodeList = nodes) {
+function filterLinks(linkList, layer) {
   if (layer === 'all') return linkList;
   // یال‌هایی که هر دو سر آن در لایه انتخاب‌شده باشد
   return linkList.filter(l => {
     const srcId = l.source.id || l.source;
     const tgtId = l.target.id || l.target;
-    const srcNode = nodeList.find(n => n.id === srcId);
-    const tgtNode = nodeList.find(n => n.id === tgtId);
+    const srcNode = nodes.find(n => n.id === srcId);
+    const tgtNode = nodes.find(n => n.id === tgtId);
     return srcNode && tgtNode &&
            srcNode.layer === layer &&
            tgtNode.layer === layer;
