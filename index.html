@@ -33,6 +33,17 @@
             max-width: 780px;
             box-shadow: 0 8px 32px #b8bedc35;
         }
+        .details-box {
+            margin: 14px auto 24px auto;
+            padding: 16px 26px 14px 16px;
+            background: #ffffffeb;
+            border-radius: 18px;
+            border: 1.5px solid #d6e4ff;
+            font-size: 16px;
+            color: #1a2846;
+            max-width: 780px;
+            box-shadow: 0 6px 24px #b8bedc28;
+        }
         #main-container {
             display: flex;
             flex-wrap: wrap;
@@ -104,10 +115,27 @@
         <b>خلاصه مدیریتی:</b>
         این داشبورد تعاملی، زنجیره علی و پیامدهای پروژه انتقال آب از کلات به مشهد را شفاف و بصری نمایش می‌دهد.<br>
         با فیلتر لایه‌ها، مشاهده رفرنس‌ها و جزئیات هر پیوند، مدیران می‌توانند در چند ثانیه کل سیستم و ریسک‌ها را تحلیل کنند.
-    </div>
-    <div id="layer-menu">
-      <button data-layer="all" class="active">همه لایه‌ها</button>
-      <button data-layer="political">سیاسی</button>
+      </div>
+      <div class="details-box">
+        <b>مشخصات فنی پروژه:</b>
+        <ul style="margin-top:8px;padding-right:20px;line-height:1.9em;">
+          <li>کارفرما: شرکت سهامی آب منطقه‌ای خراسان رضوی</li>
+          <li>محل پروژه: شمال کوه‌های هزارمسجد، خراسان</li>
+          <li>دوره مطالعات اولیه تونل اصلی: ۱۳۸۴ تا ۱۳۸۸</li>
+          <li>طول کل خط لوله: حدود ۲۰۸ کیلومتر</li>
+          <li>تعداد ایستگاه‌های پمپاژ: ۳ ایستگاه</li>
+          <li>تعداد مخازن کنترل: ۲ مخزن</li>
+          <li>طول تونل اصلی انتقال آب: ۸۴۹۲ متر</li>
+          <li>مجری احداث تونل اصلی: قرارگاه سازندگی خاتم‌الانبیاء (از اسفند ۱۴۰۱)</li>
+          <li>ظرفیت انتقال آب تخصیص‌یافته: ۴۰ میلیون مترمکعب در سال</li>
+          <li>هزینه برآوردی پروژه: ۹ تا ۱۲ هزار میلیارد تومان</li>
+          <li>نقطه شروع سامانه: پایین‌دست سد انحرافی زنگلانلو</li>
+          <li>مقصد نهایی: اتصال به تصفیه‌خانه شماره ۳ مشهد</li>
+        </ul>
+      </div>
+      <div id="layer-menu">
+        <button data-layer="all" class="active">همه لایه‌ها</button>
+        <button data-layer="political">سیاسی</button>
       <button data-layer="economic">اقتصادی</button>
       <button data-layer="environment">محیط‌زیست</button>
       <button data-layer="social">اجتماعی</button>
