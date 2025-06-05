@@ -1,49 +1,60 @@
 <!DOCTYPE html>
-<html lang="fa">
+<html lang="fa" dir="rtl">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>داشبورد گراف انتقال آب کلات - پرزنت مدیریتی</title>
-    <script src="d3.v7.min.js"></script><!-- local D3 bundle to avoid CDN issues -->
+    <title>داشبورد تعاملی و مدیریتی پروژه انتقال آب کلات به مشهد</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="d3.v7.min.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <style>
         body {
-            direction: rtl;
-            background: linear-gradient(135deg,#f7faff 0%, #e8ecf6 100%);
-            font-family: Vazirmatn,Tahoma,sans-serif;
-            margin:0; min-height:100vh;
+            font-family: 'Vazirmatn', sans-serif;
+            background-color: #F8F5F2;
+            color: #333333;
         }
-        .page-header {
-            text-align: center;
-            background: linear-gradient(90deg,#7a6fff,#48b5ae);
-            color: #fff;
-            padding: 16px 0;
-            font-size: 24px;
-            font-weight: bold;
-            box-shadow: 0 4px 16px rgba(0,0,0,0.15);
-            margin-bottom: 12px;
+        .vazir-font {
+            font-family: 'Vazirmatn', sans-serif;
         }
-        .summary-box {
-            margin: 26px auto 20px auto;
-            padding: 18px 30px 16px 18px;
-            background: linear-gradient(90deg,#e3e8ff 0%,#f9f6ff 80%);
-            border-radius: 22px;
-            border: 1.5px solid #c5cae9;
-            font-size: 17.5px;
-            color: #29405d;
-            max-width: 780px;
-            box-shadow: 0 8px 32px #b8bedc35;
+        .chart-container {
+            position: relative;
+            width: 100%;
+            max-width: 500px;
+            margin-left: auto;
+            margin-right: auto;
+            height: 300px;
+            max-height: 350px;
         }
-        .details-box {
-            margin: 14px auto 24px auto;
-            padding: 16px 26px 14px 16px;
-            background: #ffffffeb;
-            border-radius: 18px;
-            border: 1.5px solid #d6e4ff;
-            font-size: 16px;
-            color: #1a2846;
-            max-width: 780px;
-            box-shadow: 0 6px 24px #b8bedc28;
+        @media (min-width: 768px) {
+            .chart-container {
+                height: 350px;
+                max-height: 400px;
+            }
         }
+        .nav-link {
+            transition: color 0.3s, border-bottom-color 0.3s;
+        }
+        .nav-link.active {
+            color: #A95C42;
+            border-bottom-color: #A95C42;
+        }
+        .nav-link:hover {
+            color: #A95C42;
+        }
+        .tab-btn.active {
+            background-color: #A95C42;
+            color: #FFFFFF;
+        }
+        .tab-btn {
+            transition: background-color 0.3s, color 0.3s;
+        }
+        .smooth-scroll {
+            scroll-behavior: smooth;
+        }
+        /* styles for d3 graph */
         #main-container {
             display: flex;
             flex-wrap: wrap;
@@ -53,102 +64,409 @@
             min-height: 82vh;
         }
         #diagram-container {
-            flex: 3 1 670px; min-width: 390px; min-height: 410px; 
-            background: #f3f8ffdd; border-radius: 20px; box-shadow: 0 6px 28px #8fc3ff2e;
+            flex: 3 1 670px;
+            min-width: 390px;
+            min-height: 410px;
+            background: #f3f8ffdd;
+            border-radius: 20px;
+            box-shadow: 0 6px 28px #8fc3ff2e;
             padding: 12px 6px;
             border: 1.7px solid #c7e3ff;
             position: relative;
         }
-        #diagram { width: 100%; height: 72vh; min-height: 430px; max-width: 99vw; }
+        #diagram {
+            width: 100%;
+            height: 72vh;
+            min-height: 430px;
+            max-width: 99vw;
+        }
         #info-panel {
-            flex: 1 1 350px; min-width: 255px; background: #fff7ebee; border-radius: 16px;
-            border: 1.7px solid #ffd49b; padding: 27px 20px 22px 15px; box-shadow: 0 6px 26px #ffd59c30; font-family: Vazirmatn,Tahoma;
-            margin-top: 0; max-height: 82vh; overflow-y: auto; transition: box-shadow .19s;
+            flex: 1 1 350px;
+            min-width: 255px;
+            background: #fff7ebee;
+            border-radius: 16px;
+            border: 1.7px solid #ffd49b;
+            padding: 27px 20px 22px 15px;
+            box-shadow: 0 6px 26px #ffd59c30;
+            margin-top: 0;
+            max-height: 82vh;
+            overflow-y: auto;
+            transition: box-shadow .19s;
         }
         #panel-content { font-size: 16.2px; }
-        #panel-content a { color: #1976d2; text-decoration: underline; word-break: break-all; }
-        #legend {
-            margin: 18px 0 0 0; font-size: 15px; text-align: left; padding-right: 12px;
-        }
-        #layer-menu {
-            margin: 22px 0 6px 0; text-align: center;
-        }
         #layer-menu button {
-            margin: 0 8px; padding: 9px 22px; border:none; border-radius:13px;
-            background: #f3e8ff; color:#38387a; font-weight: bold; font-size:16px; cursor:pointer;
+            margin: 0 8px;
+            padding: 9px 22px;
+            border: none;
+            border-radius: 13px;
+            background: #f3e8ff;
+            color: #38387a;
+            font-weight: bold;
+            font-size: 16px;
+            cursor: pointer;
             transition: background .15s, box-shadow .17s;
-            box-shadow:0 2px 9px #bcaaff14;
+            box-shadow: 0 2px 9px #bcaaff14;
         }
-        #layer-menu button:hover {
-            background:#e9e0ff;
-            box-shadow:0 2px 9px #bcaaff40;
-        }
-        #layer-menu button.active { background:#7a6fff; color:#fff; box-shadow:0 2px 9px #a899ff50; }
-        /* نودها */
-        .node circle { filter: drop-shadow(0 2px 9px #99b1eb32); transition:.2s; }
-        .node circle.selected { stroke-width:5px !important; filter:drop-shadow(0 4px 16px #005ae1a1); }
-        .node circle.political { stroke: #7a6fff; }
-        .node circle.economic { stroke: #ffd54f; }
-        .node circle.environment { stroke: #48b5ae; }
-        .node circle.social { stroke: #ef798a; }
-        .node text { paint-order: stroke; stroke: #fff; stroke-width: 2px; }
-        /* فلش یال */
-        marker.arrow {
-            fill: #1aaf5d;
-            stroke: none;
-        }
-        marker.arrow-red {
-            fill: #e14646;
-            stroke: none;
-        }
-        @media (max-width: 900px) {
-            #main-container { flex-direction: column; align-items: stretch; gap: 18px; }
-            #diagram-container, #info-panel { width: 97vw; min-width: 180px; margin: 0 auto; }
-            .summary-box { font-size: 14px; padding: 11px 7px; max-width: 99vw; }
-            #info-panel { min-height: 110px; max-height: 360px; }
+        #layer-menu button.active {
+            background: #7a6fff;
+            color: #fff;
+            box-shadow: 0 2px 9px #a899ff50;
         }
     </style>
 </head>
-<body>
-    <header class="page-header">داشبورد مدیریتی</header>
-    <div class="summary-box">
-        <b>خلاصه مدیریتی:</b>
-        این داشبورد تعاملی، زنجیره علی و پیامدهای پروژه انتقال آب از کلات به مشهد را شفاف و بصری نمایش می‌دهد.<br>
-        با فیلتر لایه‌ها، مشاهده رفرنس‌ها و جزئیات هر پیوند، مدیران می‌توانند در چند ثانیه کل سیستم و ریسک‌ها را تحلیل کنند.
-      </div>
-      <div class="details-box">
-        <b>مشخصات فنی پروژه:</b>
-        <ul style="margin-top:8px;padding-right:20px;line-height:1.9em;">
-          <li>کارفرما: شرکت سهامی آب منطقه‌ای خراسان رضوی</li>
-          <li>محل پروژه: شمال کوه‌های هزارمسجد، خراسان</li>
-          <li>دوره مطالعات اولیه تونل اصلی: ۱۳۸۴ تا ۱۳۸۸</li>
-          <li>طول کل خط لوله: حدود ۲۰۸ کیلومتر</li>
-          <li>تعداد ایستگاه‌های پمپاژ: ۳ ایستگاه</li>
-          <li>تعداد مخازن کنترل: ۲ مخزن</li>
-          <li>طول تونل اصلی انتقال آب: ۸۴۹۲ متر</li>
-          <li>مجری احداث تونل اصلی: قرارگاه سازندگی خاتم‌الانبیاء (از اسفند ۱۴۰۱)</li>
-          <li>ظرفیت انتقال آب تخصیص‌یافته: ۴۰ میلیون مترمکعب در سال</li>
-          <li>هزینه برآوردی پروژه: ۹ تا ۱۲ هزار میلیارد تومان</li>
-          <li>نقطه شروع سامانه: پایین‌دست سد انحرافی زنگلانلو</li>
-          <li>مقصد نهایی: اتصال به تصفیه‌خانه شماره ۳ مشهد</li>
-        </ul>
-      </div>
-      <div id="layer-menu">
-        <button data-layer="all" class="active">همه لایه‌ها</button>
-        <button data-layer="political">سیاسی</button>
-      <button data-layer="economic">اقتصادی</button>
-      <button data-layer="environment">محیط‌زیست</button>
-      <button data-layer="social">اجتماعی</button>
-    </div>
-    <div id="legend">
-      <span style="display:inline-block;width:32px;height:6px;background:#1aaf5d;margin-left:5px;vertical-align:middle;"></span> یال مثبت (اثر افزاینده)
-      &nbsp;&nbsp;
-      <span style="display:inline-block;width:32px;height:6px;background:#e14646;border-bottom:3px dashed #e14646;margin-left:5px;vertical-align:middle;"></span> یال منفی (اثر کاهنده)
-    </div>
-    <div id="main-container">
-      <div id="diagram-container"><svg id="diagram"></svg></div>
-      <div id="info-panel"><div id="panel-content">برای مشاهده توضیحات و رفرنس، روی هر گره یا یال کلیک کنید.</div></div>
-    </div>
+<body class="smooth-scroll">
+
+    <header id="header" class="bg-white/80 backdrop-blur-sm sticky top-0 z-50 shadow-sm">
+        <nav class="container mx-auto px-6 py-3 flex justify-between items-center">
+            <h1 class="text-xl font-bold text-[#2E5A88]">پروژه آب هزار مسجد</h1>
+            <div class="hidden md:flex space-x-8 space-x-reverse">
+                <a href="#dashboard" class="nav-link border-b-2 border-transparent pb-1">داشبورد اصلی</a>
+                <a href="#system-graph" class="nav-link border-b-2 border-transparent pb-1">گراف سیستمی</a>
+                <a href="#controversies" class="nav-link border-b-2 border-transparent pb-1">مناقشات و دیدگاه‌ها</a>
+                <a href="#alternatives" class="nav-link border-b-2 border-transparent pb-1">راهکارهای جایگزین</a>
+                <a href="#details" class="nav-link border-b-2 border-transparent pb-1">جزئیات فنی</a>
+            </div>
+            <button id="mobile-menu-button" class="md:hidden">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-7 6h7" />
+                </svg>
+            </button>
+        </nav>
+        <div id="mobile-menu" class="hidden md:hidden px-6 pb-4">
+            <a href="#dashboard" class="block py-2 text-center nav-link">داشبورد اصلی</a>
+            <a href="#system-graph" class="block py-2 text-center nav-link">گراف سیستمی</a>
+            <a href="#controversies" class="block py-2 text-center nav-link">مناقشات و دیدگاه‌ها</a>
+            <a href="#alternatives" class="block py-2 text-center nav-link">راهکارهای جایگزین</a>
+            <a href="#details" class="block py-2 text-center nav-link">جزئیات فنی</a>
+        </div>
+    </header>
+
+    <main class="container mx-auto p-4 md:p-8">
+
+        <section id="dashboard" class="text-center mb-16 pt-12">
+            <h2 class="text-3xl md:text-4xl font-bold text-[#2E5A88] mb-4">پروژه انتقال آب کلات به مشهد</h2>
+            <p class="max-w-3xl mx-auto text-gray-600 mb-8">
+                این داشبورد، یک نمای کلی از پروژه بزرگ و مناقشه‌برانگیز انتقال آب از کوه‌های هزار مسجد به کلانشهر مشهد ارائه می‌دهد. هدف، تأمین آب شرب مشهد در مواجهه با بحران کم‌آبی است، اما این پروژه با چالش‌های عمده زیست‌محیطی، اجتماعی و اقتصادی روبروست.
+            </p>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 text-center">
+                <div class="bg-white p-6 rounded-lg shadow-lg transform hover:scale-105 transition-transform">
+                    <h3 class="text-4xl font-bold text-[#A95C42]">۲۰۸</h3>
+                    <p class="text-gray-500 mt-2">کیلومتر طول خط لوله</p>
+                </div>
+                <div class="bg-white p-6 rounded-lg shadow-lg transform hover:scale-105 transition-transform">
+                    <h3 class="text-4xl font-bold text-[#A95C42]">~۱۲</h3>
+                    <p class="text-gray-500 mt-2">هزار میلیارد تومان هزینه برآوردی</p>
+                </div>
+                <div class="bg-white p-6 rounded-lg shadow-lg transform hover:scale-105 transition-transform">
+                    <h3 class="text-4xl font-bold text-[#A95C42]">۴۰</h3>
+                    <p class="text-gray-500 mt-2">میلیون متر مکعب آب انتقالی در سال</p>
+                </div>
+                <div class="bg-white p-6 rounded-lg shadow-lg transform hover:scale-105 transition-transform">
+                    <h3 class="text-4xl font-bold text-[#A95C42]">۷۰٪</h3>
+                    <p class="text-gray-500 mt-2">پیشرفت فیزیکی (ادعای رسمی)</p>
+                </div>
+            </div>
+
+            <div class="mt-12 bg-white p-6 rounded-lg shadow-xl">
+                <h3 class="text-2xl font-bold text-[#2E5A88] mb-4">تناقض اصلی: ادعای "آب مازاد" در برابر نیاز محلی</h3>
+                <p class="text-gray-600 mb-6 max-w-2xl mx-auto">
+                    یکی از بزرگترین نقاط اختلاف، ادعای وجود آب مازاد در کلات است. مسئولان پروژه معتقدند سالانه حدود ۶۷ میلیون متر مکعب آب از مرز خارج می‌شود، در حالی که منتقدان و مردم محلی تأکید دارند که خود شهرستان کلات با کمبود شدید آب مواجه است.
+                </p>
+                <div class="chart-container h-64 md:h-80">
+                    <canvas id="waterDiscrepancyChart"></canvas>
+                </div>
+            </div>
+        </section>
+
+        <section id="system-graph" class="mb-16 pt-12">
+            <h2 class="text-3xl font-bold text-center text-[#2E5A88] mb-4">نمودار سیستمی پروژه</h2>
+            <p class="text-center text-gray-600 mb-6 max-w-2xl mx-auto">گراف زیر روابط علت و معلولی و پیامدهای کلیدی پروژه را نمایش می‌دهد.</p>
+            <div id="layer-menu" class="text-center my-4">
+                <button data-layer="all" class="active">همه لایه‌ها</button>
+                <button data-layer="political">سیاسی</button>
+                <button data-layer="economic">اقتصادی</button>
+                <button data-layer="environment">محیط‌زیست</button>
+                <button data-layer="social">اجتماعی</button>
+            </div>
+            <div id="main-container">
+                <div id="diagram-container"><svg id="diagram"></svg></div>
+                <div id="info-panel"><div id="panel-content">برای مشاهده توضیحات و رفرنس، روی هر گره یا یال کلیک کنید.</div></div>
+            </div>
+        </section>
+
+        <section id="controversies" class="mb-16 pt-12">
+            <h2 class="text-3xl font-bold text-center text-[#2E5A88] mb-4">مناقشات و دیدگاه‌ها</h2>
+            <p class="text-center text-gray-600 mb-10 max-w-3xl mx-auto">این پروژه محل تلاقی دیدگاه‌های کاملاً متضاد است. در این بخش، مواضع ذی‌نفعان اصلی و نگرانی‌های کلیدی مطرح‌شده را بررسی می‌کنیم.</p>
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 items-center">
+                <div class="bg-white p-6 rounded-lg shadow-xl">
+                    <h3 class="text-2xl font-bold text-[#2E5A88] mb-4">مواضع ذی‌نفعان</h3>
+                    <p class="text-gray-600 mb-6">برای درک بهتر پیچیدگی موضوع، روی هر بخش از نمودار کلیک کنید تا استدلال‌های اصلی هر گروه را مشاهده نمایید.</p>
+                    <div class="chart-container h-80 md:h-96">
+                        <canvas id="stakeholdersChart"></canvas>
+                    </div>
+                </div>
+                <div id="stakeholder-info" class="bg-white p-6 rounded-lg shadow-xl min-h-[400px]">
+                    <h4 id="stakeholder-title" class="text-xl font-bold text-[#A95C42] mb-3">گروه را انتخاب کنید</h4>
+                    <p id="stakeholder-text" class="text-gray-700 leading-relaxed">با کلیک بر روی بخش‌های مختلف نمودار، خلاصه دیدگاه و استدلال‌های اصلی هر یک از گروه‌های ذی‌نفع در اینجا نمایش داده می‌شود.</p>
+                </div>
+            </div>
+
+            <div class="mt-12 bg-white p-6 rounded-lg shadow-xl">
+                 <h3 class="text-2xl font-bold text-center text-[#2E5A88] mb-6">بررسی دقیق نگرانی‌ها</h3>
+                <div class="flex justify-center mb-6 border-b">
+                    <button class="tab-btn px-4 py-2 font-semibold border-b-2 border-transparent active" data-tab="environmental">زیست‌محیطی</button>
+                    <button class="tab-btn px-4 py-2 font-semibold border-b-2 border-transparent" data-tab="social">اجتماعی</button>
+                    <button class="tab-btn px-4 py-2 font-semibold border-b-2 border-transparent" data-tab="economic">اقتصادی</button>
+                </div>
+                <div id="environmental" class="tab-content">
+                    <ul class="space-y-4 text-gray-700 list-disc list-inside">
+                        <li><b>تهدید اکوسیستم کلات:</b> کاهش دبی رودخانه‌ها و خشک شدن چشمه‌ها، تعادل هیدرولوژیکی منطقه را بر هم می‌زند.</li>
+                        <li><b>ایجاد کانون‌های گرد و غبار:</b> کاهش رطوبت در شمال هزار مسجد می‌تواند به گسترش بیابان قره‌قوم و هجوم ریزگردها به سمت مشهد منجر شود.</li>
+                        <li><b>عدم رعایت حقابه زیست‌محیطی:</b> منتقدان معتقدند حقابه لازم برای حفظ حیات اکوسیستم‌های منطقه مبدأ به درستی محاسبه و تخصیص داده نشده است.</li>
+                        <li><b>عبور از مناطق حفاظت‌شده:</b> گزارش‌ها حاکی از تغییر مسیر خط لوله و عبور آن از مناطق حفاظت‌شده بدون مجوز سازمان محیط زیست است که منجر به توقف قضایی پروژه شد.</li>
+                    </ul>
+                </div>
+                <div id="social" class="tab-content hidden">
+                     <ul class="space-y-4 text-gray-700 list-disc list-inside">
+                        <li><b>تأثیر بر معیشت محلی:</b> کشاورزی و دامداری در کلات، به‌ویژه کشت برنج، به شدت به آب وابسته است. کاهش آب می‌تواند به فقر و کوچ اجباری منجر شود.</li>
+                        <li><b>عدم مشارکت عمومی:</b> مردم محلی و کارشناسان از عدم شفافیت، پنهان‌کاری و عدم مشورت واقعی در فرآیند اجرای پروژه گله‌مند هستند.</li>
+                        <li><b>بی‌اعتمادی به مسئولان:</b> تناقض بین ادعای "آب مازاد" و تجربه کمبود آب توسط مردم، به یک بحران اعتماد عمیق دامن زده است.</li>
+                        <li><b>اولویت‌بندی ناعادلانه:</b> این احساس وجود دارد که نیازهای کلانشهر مشهد بر امنیت آبی و توسعه منطقه محروم کلات ارجحیت داده شده است.</li>
+                    </ul>
+                </div>
+                <div id="economic" class="tab-content hidden">
+                    <ul class="space-y-4 text-gray-700 list-disc list-inside">
+                        <li><b>هزینه بسیار بالا:</b> هزینه ۹ تا ۱۲ هزار میلیارد تومانی پروژه، سوالات جدی در مورد تحلیل هزینه-فایده آن ایجاد کرده است.</li>
+                        <li><b>فقدان شفافیت مالی:</b> گزارش جامعی از تحلیل هزینه-فایده که هزینه‌های زیست‌محیطی و اجتماعی را نیز در بر بگیرد، به صورت عمومی منتشر نشده است.</li>
+                        <li><b>کیفیت آب و هزینه تصفیه:</b> کارشناسان هشدار می‌دهند که آب انتقالی، به‌ویژه در فصول سیلابی، حاوی گل و لای فراوان است که هزینه تصفیه را به شدت افزایش می‌دهد.</li>
+                        <li><b>وجود جایگزین‌های کم‌هزینه‌تر:</b> منتقدان معتقدند با هزینه این پروژه می‌توان راهکارهای مدیریت تقاضا در مشهد را با کارایی بیشتر اجرا کرد.</li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+
+        <section id="alternatives" class="mb-16 pt-12">
+            <h2 class="text-3xl font-bold text-center text-[#2E5A88] mb-4">راهکارهای جایگزین چه هستند؟</h2>
+            <p class="text-center text-gray-600 mb-10 max-w-3xl mx-auto">منتقدان پروژه معتقدند به جای تمرکز بر پروژه‌های پرهزینه انتقال آب، باید به راهکارهای پایدارتر و کم‌هزینه‌تر در داخل حوضه آبریز مشهد توجه کرد.</p>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                <div class="bg-white p-6 rounded-lg shadow-lg text-center">
+                    <div class="text-4xl text-[#A95C42] mb-4">💧</div>
+                    <h3 class="text-xl font-semibold mb-2">مدیریت تقاضا</h3>
+                    <p class="text-gray-600">کاهش سرانه مصرف آب، اصلاح الگوی کشت، و کنترل مصرف بی‌رویه آب در باغ‌ویلاهای اطراف مشهد.</p>
+                </div>
+                <div class="bg-white p-6 rounded-lg shadow-lg text-center">
+                     <div class="text-4xl text-[#A95C42] mb-4">♻️</div>
+                    <h3 class="text-xl font-semibold mb-2">بازچرخانی آب</h3>
+                    <p class="text-gray-600">سرمایه‌گذاری گسترده در تصفیه و استفاده مجدد از فاضلاب شهری برای مصارف صنعتی و کشاورزی.</p>
+                </div>
+                 <div class="bg-white p-6 rounded-lg shadow-lg text-center">
+                     <div class="text-4xl text-[#A95C42] mb-4">🔧</div>
+                    <h3 class="text-xl font-semibold mb-2">کاهش هدررفت</h3>
+                    <p class="text-gray-600">اصلاح و نوسازی شبکه فرسوده توزیع آب مشهد که طبق گزارش‌ها حدود ۲۰٪ هدررفت دارد.</p>
+                </div>
+                <div class="bg-white p-6 rounded-lg shadow-lg text-center">
+                     <div class="text-4xl text-[#A95C42] mb-4">🌧️</div>
+                    <h3 class="text-xl font-semibold mb-2">برداشت آب باران</h3>
+                    <p class="text-gray-600">اجرای سیستم‌های استحصال آب باران در سطح ساختمان‌ها و شهر برای تغذیه آبخوان‌ها.</p>
+                </div>
+                <div class="bg-white p-6 rounded-lg shadow-lg text-center">
+                     <div class="text-4xl text-[#A95C42] mb-4">🏞️</div>
+                    <h3 class="text-xl font-semibold mb-2">آبخیزداری در مبدأ</h3>
+                    <p class="text-gray-600">به جای انتقال آب، اجرای پروژه‌های آبخیزداری و تغذیه مصنوعی در خود کلات برای مهار سیلاب‌ها و تقویت منابع محلی.</p>
+                </div>
+                <div class="bg-white p-6 rounded-lg shadow-lg text-center">
+                     <div class="text-4xl text-[#A95C42] mb-4">⚖️</div>
+                    <h3 class="text-xl font-semibold mb-2">مدیریت یکپارچه</h3>
+                    <p class="text-gray-600">حرکت به سمت مدیریت یکپارچه و مشارکتی منابع آب با حضور تمام ذی‌نفعان برای حل تعارضات.</p>
+                </div>
+            </div>
+        </section>
+        
+        <section id="details" class="pt-12">
+            <h2 class="text-3xl font-bold text-center text-[#2E5A88] mb-4">مروری بر مشخصات فنی پروژه</h2>
+            <p class="text-center text-gray-600 mb-10 max-w-3xl mx-auto">این پروژه شامل مجموعه‌ای از سازه‌های عظیم برای جمع‌آوری و انتقال آب از شمال کوه‌های هزار مسجد به مشهد است.</p>
+            <div class="bg-white p-8 rounded-lg shadow-xl overflow-x-auto">
+                <div class="min-w-full">
+                    <div class="flex flex-col md:flex-row items-center justify-around space-y-8 md:space-y-0 md:space-x-8 md:space-x-reverse">
+                        <div class="text-center">
+                            <div class="text-2xl font-bold">댐</div>
+                            <p class="font-semibold text-lg text-[#2E5A88] mt-2">سدهای انحرافی</p>
+                            <p class="text-sm text-gray-500">زنگلانلو، قره‌تیکان</p>
+                        </div>
+                        <div class="text-2xl text-gray-400 font-sans">&rarr;</div>
+                        <div class="text-center">
+                            <div class="text-2xl font-bold">🌊</div>
+                            <p class="font-semibold text-lg text-[#2E5A88] mt-2">کانال‌ها</p>
+                            <p class="text-sm text-gray-500">اسپیان و ابیورد</p>
+                        </div>
+                        <div class="text-2xl text-gray-400 font-sans">&rarr;</div>
+                        <div class="text-center">
+                            <div class="text-2xl font-bold">🚇</div>
+                            <p class="font-semibold text-lg text-[#2E5A88] mt-2">تونل اصلی</p>
+                            <p class="text-sm text-gray-500">~۸.۵ کیلومتر</p>
+                        </div>
+                         <div class="text-2xl text-gray-400 font-sans">&rarr;</div>
+                        <div class="text-center">
+                            <div class="text-2xl font-bold">💨</div>
+                            <p class="font-semibold text-lg text-[#2E5A88] mt-2">ایستگاه‌های پمپاژ</p>
+                            <p class="text-sm text-gray-500">۳ ایستگاه</p>
+                        </div>
+                         <div class="text-2xl text-gray-400 font-sans">&rarr;</div>
+                        <div class="text-center">
+                            <div class="text-2xl font-bold">🏙️</div>
+                            <p class="font-semibold text-lg text-[#A95C42] mt-2">تصفیه‌خانه مشهد</p>
+                            <p class="text-sm text-gray-500">مقصد نهایی</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <footer class="bg-gray-800 text-white mt-16">
+        <div class="container mx-auto p-6 text-center">
+            <p>این داشبورد بر اساس اطلاعات جمع‌آوری‌شده از منابع عمومی و گزارش‌های خبری تا تاریخ ۱۰ خرداد ۱۴۰۴ تهیه شده است.</p>
+            <p class="text-sm text-gray-400 mt-2">طراحی و پیاده‌سازی شده برای ارائه یک نمای کلی و تسهیل درک عمومی موضوع.</p>
+        </div>
+    </footer>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const mobileMenuButton = document.getElementById('mobile-menu-button');
+            const mobileMenu = document.getElementById('mobile-menu');
+            mobileMenuButton.addEventListener('click', () => {
+                mobileMenu.classList.toggle('hidden');
+            });
+            const navLinks = document.querySelectorAll('.nav-link');
+            const sections = document.querySelectorAll('main section');
+
+            function changeNav() {
+                let index = sections.length;
+                while(--index && window.scrollY + 100 < sections[index].offsetTop) {}
+                navLinks.forEach((link) => link.classList.remove('active'));
+                const activeLink = document.querySelector(`.nav-link[href="#${sections[index].id}"]`);
+                if (activeLink) {
+                    activeLink.classList.add('active');
+                }
+            }
+            changeNav();
+            window.addEventListener('scroll', changeNav);
+            navLinks.forEach(anchor => {
+                anchor.addEventListener('click', function (e) {
+                    if(this.getAttribute('href').startsWith('#')) {
+                        e.preventDefault();
+                        document.querySelector(this.getAttribute('href')).scrollIntoView({ behavior: 'smooth' });
+                        if (mobileMenu.classList.contains('hidden') === false) {
+                            mobileMenu.classList.add('hidden');
+                        }
+                    }
+                });
+            });
+
+            const waterCtx = document.getElementById('waterDiscrepancyChart').getContext('2d');
+            new Chart(waterCtx, {
+                type: 'bar',
+                data: {
+                    labels: ['آب قابل ادعا برای انتقال', 'آب مورد نیاز واقعی کلات'],
+                    datasets: [{
+                        label: 'میلیون متر مکعب در سال',
+                        data: [67, 80],
+                        backgroundColor: ['rgba(46, 90, 136, 0.6)', 'rgba(169, 92, 66, 0.6)'],
+                        borderColor: ['rgba(46, 90, 136, 1)', 'rgba(169, 92, 66, 1)'],
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    indexAxis: 'y',
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: { bodyFont: { family: 'Vazirmatn' }, titleFont: { family: 'Vazirmatn' } }
+                    },
+                    scales: {
+                        x: {
+                            beginAtZero: true,
+                            ticks: { font: { family: 'Vazirmatn' } },
+                            title: { display: true, text: 'حجم آب (میلیون متر مکعب)', font: { family: 'Vazirmatn' } }
+                        },
+                        y: {
+                            ticks: { font: { family: 'Vazirmatn', size: 12 } }
+                        }
+                    }
+                }
+            });
+
+            const stakeholderData = {
+                'دولت و آب منطقه‌ای': 'حامی اصلی پروژه با استدلال‌هایی مانند بحران آب مشهد، جلوگیری از خروج "آب مازاد" از کشور، و تأمین حقابه کلات. بر پیشرفت ۷۰ درصدی و اخذ تمام مجوزها تأکید دارند.',
+                'کارشناسان دانشگاهی': 'عمدتاً منتقد پروژه هستند. وجود "آب مازاد" را رد کرده، به کیفیت پایین آب انتقالی (گل و لای) و اثرات منفی زیست‌محیطی اشاره دارند و راهکارهای جایگزین را پیشنهاد می‌دهند.',
+                'سازمان محیط زیست': 'موضعی نظارتی و منتقدانه دارد. ضمن تأیید نیاز آبی مشهد، بر لزوم مطالعات جامع حقابه زیست‌محیطی و غیرقانونی بودن تغییر مسیر پروژه از مناطق حفاظت‌شده تأکید می‌کند.',
+                'نمایندگان و مردم محلی': 'مخالف جدی شکل فعلی پروژه. به کمبود آب در خود کلات، عدم توجیه اقتصادی، نابودی کشاورزی و خطر کوچ اجباری اشاره می‌کنند و خواستار توقف یا بازنگری اساسی در طرح هستند.',
+                'قوه قضائیه': 'نقش میانجی و ناظر بر اجرای قانون را دارد. به دلیل تخلفات زیست‌محیطی و عدم وجود پیوست‌های لازم، دستور توقف کار در بخش‌هایی از پروژه را صادر کرده است.'
+            };
+            const stakeholdersCtx = document.getElementById('stakeholdersChart').getContext('2d');
+            const stakeholdersChart = new Chart(stakeholdersCtx, {
+                type: 'polarArea',
+                data: {
+                    labels: Object.keys(stakeholderData),
+                    datasets: [{
+                        label: 'میزان تأثیرگذاری یا مخالفت/موافقت',
+                        data: [5, 4, 3, 4, 2],
+                        backgroundColor: [
+                            'rgba(46, 90, 136, 0.7)',
+                            'rgba(249, 178, 8, 0.7)',
+                            'rgba(28, 150, 96, 0.7)',
+                            'rgba(169, 92, 66, 0.7)',
+                            'rgba(128, 128, 128, 0.7)'
+                        ]
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'bottom',
+                            labels: { font: { family: 'Vazirmatn' } }
+                        },
+                        tooltip: { bodyFont: { family: 'Vazirmatn' }, titleFont: { family: 'Vazirmatn' } }
+                    },
+                    scales: {
+                        r: { ticks: { display: false }, grid: { circular: true } }
+                    },
+                    onClick: (evt, elements) => {
+                        if (elements.length > 0) {
+                            const index = elements[0].index;
+                            const label = stakeholdersChart.data.labels[index];
+                            const info = stakeholderData[label];
+                            document.getElementById('stakeholder-title').textContent = label;
+                            document.getElementById('stakeholder-text').textContent = info;
+                        }
+                    }
+                }
+            });
+
+            const tabButtons = document.querySelectorAll('.tab-btn');
+            const tabContents = document.querySelectorAll('.tab-content');
+            tabButtons.forEach(button => {
+                button.addEventListener('click', () => {
+                    tabButtons.forEach(btn => btn.classList.remove('active'));
+                    button.classList.add('active');
+                    const tabId = button.dataset.tab;
+                    tabContents.forEach(content => {
+                        if (content.id === tabId) {
+                            content.classList.remove('hidden');
+                        } else {
+                            content.classList.add('hidden');
+                        }
+                    });
+                });
+            });
+        });
+    </script>
     <script src="main.js"></script>
 </body>
 </html>
