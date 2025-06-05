@@ -1,154 +1,113 @@
 <!DOCTYPE html>
-<html lang="fa">
+<html lang="fa" dir="rtl">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>داشبورد گراف انتقال آب کلات - پرزنت مدیریتی</title>
-    <script src="d3.v7.min.js"></script><!-- local D3 bundle to avoid CDN issues -->
+    <title>داشبورد مدیریتی انتقال آب کلات</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="d3.v7.min.js"></script>
     <style>
-        body {
-            direction: rtl;
-            background: linear-gradient(135deg,#f7faff 0%, #e8ecf6 100%);
-            font-family: Vazirmatn,Tahoma,sans-serif;
-            margin:0; min-height:100vh;
-        }
-        .page-header {
-            text-align: center;
-            background: linear-gradient(90deg,#7a6fff,#48b5ae);
-            color: #fff;
-            padding: 16px 0;
-            font-size: 24px;
-            font-weight: bold;
-            box-shadow: 0 4px 16px rgba(0,0,0,0.15);
-            margin-bottom: 12px;
-        }
-        .summary-box {
-            margin: 26px auto 20px auto;
-            padding: 18px 30px 16px 18px;
-            background: linear-gradient(90deg,#e3e8ff 0%,#f9f6ff 80%);
-            border-radius: 22px;
-            border: 1.5px solid #c5cae9;
-            font-size: 17.5px;
-            color: #29405d;
-            max-width: 780px;
-            box-shadow: 0 8px 32px #b8bedc35;
-        }
-        .details-box {
-            margin: 14px auto 24px auto;
-            padding: 16px 26px 14px 16px;
-            background: #ffffffeb;
-            border-radius: 18px;
-            border: 1.5px solid #d6e4ff;
-            font-size: 16px;
-            color: #1a2846;
-            max-width: 780px;
-            box-shadow: 0 6px 24px #b8bedc28;
-        }
-        #main-container {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 28px;
-            justify-content: center;
-            align-items: flex-start;
-            min-height: 82vh;
-        }
-        #diagram-container {
-            flex: 3 1 670px; min-width: 390px; min-height: 410px; 
-            background: #f3f8ffdd; border-radius: 20px; box-shadow: 0 6px 28px #8fc3ff2e;
-            padding: 12px 6px;
-            border: 1.7px solid #c7e3ff;
-            position: relative;
-        }
-        #diagram { width: 100%; height: 72vh; min-height: 430px; max-width: 99vw; }
-        #info-panel {
-            flex: 1 1 350px; min-width: 255px; background: #fff7ebee; border-radius: 16px;
-            border: 1.7px solid #ffd49b; padding: 27px 20px 22px 15px; box-shadow: 0 6px 26px #ffd59c30; font-family: Vazirmatn,Tahoma;
-            margin-top: 0; max-height: 82vh; overflow-y: auto; transition: box-shadow .19s;
-        }
-        #panel-content { font-size: 16.2px; }
-        #panel-content a { color: #1976d2; text-decoration: underline; word-break: break-all; }
-        #legend {
-            margin: 18px 0 0 0; font-size: 15px; text-align: left; padding-right: 12px;
-        }
-        #layer-menu {
-            margin: 22px 0 6px 0; text-align: center;
-        }
-        #layer-menu button {
-            margin: 0 8px; padding: 9px 22px; border:none; border-radius:13px;
-            background: #f3e8ff; color:#38387a; font-weight: bold; font-size:16px; cursor:pointer;
-            transition: background .15s, box-shadow .17s;
-            box-shadow:0 2px 9px #bcaaff14;
-        }
-        #layer-menu button:hover {
-            background:#e9e0ff;
-            box-shadow:0 2px 9px #bcaaff40;
-        }
+        body { font-family: Vazirmatn,Tahoma,sans-serif; background:#f8f5f2; }
+        .page-header { text-align:center; background:#7a6fff; color:#fff; padding:16px 0; font-size:24px; margin-bottom:20px; }
+        /* styles for d3 graph from previous version */
+        #main-container { display:flex; flex-wrap:wrap; gap:28px; justify-content:center; align-items:flex-start; min-height:82vh; }
+        #diagram-container { flex:3 1 670px; min-width:390px; min-height:410px; background:#f3f8ffdd; border-radius:20px; box-shadow:0 6px 28px #8fc3ff2e; padding:12px 6px; border:1.7px solid #c7e3ff; position:relative; }
+        #diagram { width:100%; height:72vh; min-height:430px; max-width:99vw; }
+        #info-panel { flex:1 1 350px; min-width:255px; background:#fff7ebee; border-radius:16px; border:1.7px solid #ffd49b; padding:27px 20px 22px 15px; box-shadow:0 6px 26px #ffd59c30; margin-top:0; max-height:82vh; overflow-y:auto; transition:box-shadow .19s; }
+        #panel-content { font-size:16.2px; }
+        #layer-menu button { margin:0 8px; padding:9px 22px; border:none; border-radius:13px; background:#f3e8ff; color:#38387a; font-weight:bold; font-size:16px; cursor:pointer; transition:background .15s, box-shadow .17s; box-shadow:0 2px 9px #bcaaff14; }
         #layer-menu button.active { background:#7a6fff; color:#fff; box-shadow:0 2px 9px #a899ff50; }
-        /* نودها */
-        .node circle { filter: drop-shadow(0 2px 9px #99b1eb32); transition:.2s; }
-        .node circle.selected { stroke-width:5px !important; filter:drop-shadow(0 4px 16px #005ae1a1); }
-        .node circle.political { stroke: #7a6fff; }
-        .node circle.economic { stroke: #ffd54f; }
-        .node circle.environment { stroke: #48b5ae; }
-        .node circle.social { stroke: #ef798a; }
-        .node text { paint-order: stroke; stroke: #fff; stroke-width: 2px; }
-        /* فلش یال */
-        marker.arrow {
-            fill: #1aaf5d;
-            stroke: none;
-        }
-        marker.arrow-red {
-            fill: #e14646;
-            stroke: none;
-        }
-        @media (max-width: 900px) {
-            #main-container { flex-direction: column; align-items: stretch; gap: 18px; }
-            #diagram-container, #info-panel { width: 97vw; min-width: 180px; margin: 0 auto; }
-            .summary-box { font-size: 14px; padding: 11px 7px; max-width: 99vw; }
-            #info-panel { min-height: 110px; max-height: 360px; }
-        }
     </style>
 </head>
 <body>
-    <header class="page-header">داشبورد مدیریتی</header>
+<header class="page-header">داشبورد مدیریتی</header>
+
+<section id="dashboard" class="container mx-auto p-4">
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 text-center">
+        <div class="bg-white p-6 rounded-lg shadow-lg">
+            <h3 class="text-4xl font-bold text-purple-700">۲۰۸</h3>
+            <p class="text-gray-500 mt-2">کیلومتر طول خط لوله</p>
+        </div>
+        <div class="bg-white p-6 rounded-lg shadow-lg">
+            <h3 class="text-4xl font-bold text-purple-700">~۱۲</h3>
+            <p class="text-gray-500 mt-2">هزار میلیارد تومان هزینه برآوردی</p>
+        </div>
+        <div class="bg-white p-6 rounded-lg shadow-lg">
+            <h3 class="text-4xl font-bold text-purple-700">۴۰</h3>
+            <p class="text-gray-500 mt-2">میلیون متر مکعب آب انتقالی در سال</p>
+        </div>
+        <div class="bg-white p-6 rounded-lg shadow-lg">
+            <h3 class="text-4xl font-bold text-purple-700">۷۰٪</h3>
+            <p class="text-gray-500 mt-2">پیشرفت فیزیکی (ادعای رسمی)</p>
+        </div>
+    </div>
+
+    <div class="mt-12 bg-white p-6 rounded-lg shadow-lg max-w-xl mx-auto">
+        <canvas id="waterChart" height="300"></canvas>
+    </div>
+</section>
+
+<section id="system-graph" class="container mx-auto mt-16">
     <div class="summary-box">
         <b>خلاصه مدیریتی:</b>
-        این داشبورد تعاملی، زنجیره علی و پیامدهای پروژه انتقال آب از کلات به مشهد را شفاف و بصری نمایش می‌دهد.<br>
-        با فیلتر لایه‌ها، مشاهده رفرنس‌ها و جزئیات هر پیوند، مدیران می‌توانند در چند ثانیه کل سیستم و ریسک‌ها را تحلیل کنند.
-      </div>
-      <div class="details-box">
-        <b>مشخصات فنی پروژه:</b>
-        <ul style="margin-top:8px;padding-right:20px;line-height:1.9em;">
-          <li>کارفرما: شرکت سهامی آب منطقه‌ای خراسان رضوی</li>
-          <li>محل پروژه: شمال کوه‌های هزارمسجد، خراسان</li>
-          <li>دوره مطالعات اولیه تونل اصلی: ۱۳۸۴ تا ۱۳۸۸</li>
-          <li>طول کل خط لوله: حدود ۲۰۸ کیلومتر</li>
-          <li>تعداد ایستگاه‌های پمپاژ: ۳ ایستگاه</li>
-          <li>تعداد مخازن کنترل: ۲ مخزن</li>
-          <li>طول تونل اصلی انتقال آب: ۸۴۹۲ متر</li>
-          <li>مجری احداث تونل اصلی: قرارگاه سازندگی خاتم‌الانبیاء (از اسفند ۱۴۰۱)</li>
-          <li>ظرفیت انتقال آب تخصیص‌یافته: ۴۰ میلیون مترمکعب در سال</li>
-          <li>هزینه برآوردی پروژه: ۹ تا ۱۲ هزار میلیارد تومان</li>
-          <li>نقطه شروع سامانه: پایین‌دست سد انحرافی زنگلانلو</li>
-          <li>مقصد نهایی: اتصال به تصفیه‌خانه شماره ۳ مشهد</li>
-        </ul>
-      </div>
-      <div id="layer-menu">
+        این داشبورد تعاملی، زنجیره علی و پیامدهای پروژه انتقال آب از کلات به مشهد را نمایش می‌دهد.
+    </div>
+    <div id="layer-menu" class="text-center my-4">
         <button data-layer="all" class="active">همه لایه‌ها</button>
         <button data-layer="political">سیاسی</button>
-      <button data-layer="economic">اقتصادی</button>
-      <button data-layer="environment">محیط‌زیست</button>
-      <button data-layer="social">اجتماعی</button>
-    </div>
-    <div id="legend">
-      <span style="display:inline-block;width:32px;height:6px;background:#1aaf5d;margin-left:5px;vertical-align:middle;"></span> یال مثبت (اثر افزاینده)
-      &nbsp;&nbsp;
-      <span style="display:inline-block;width:32px;height:6px;background:#e14646;border-bottom:3px dashed #e14646;margin-left:5px;vertical-align:middle;"></span> یال منفی (اثر کاهنده)
+        <button data-layer="economic">اقتصادی</button>
+        <button data-layer="environment">محیط‌زیست</button>
+        <button data-layer="social">اجتماعی</button>
     </div>
     <div id="main-container">
-      <div id="diagram-container"><svg id="diagram"></svg></div>
-      <div id="info-panel"><div id="panel-content">برای مشاهده توضیحات و رفرنس، روی هر گره یا یال کلیک کنید.</div></div>
+        <div id="diagram-container"><svg id="diagram"></svg></div>
+        <div id="info-panel"><div id="panel-content">برای مشاهده توضیحات و رفرنس، روی هر گره یا یال کلیک کنید.</div></div>
     </div>
-    <script src="main.js"></script>
+</section>
+
+<section id="stakeholders" class="container mx-auto mt-16">
+    <div class="bg-white p-6 rounded-lg shadow-lg max-w-xl mx-auto">
+        <canvas id="stakeholderChart" height="300"></canvas>
+    </div>
+</section>
+
+<script>
+const waterCtx = document.getElementById('waterChart').getContext('2d');
+new Chart(waterCtx, {
+    type: 'bar',
+    data: {
+        labels: ['آب قابل ادعا برای انتقال', 'آب مورد نیاز واقعی کلات'],
+        datasets: [{
+            label: 'میلیون متر مکعب در سال',
+            data: [67, 80],
+            backgroundColor: ['rgba(46,90,136,0.6)','rgba(169,92,66,0.6)'],
+            borderColor: ['rgba(46,90,136,1)','rgba(169,92,66,1)'],
+            borderWidth:1
+        }]
+    },
+    options:{responsive:true, maintainAspectRatio:false, indexAxis:'y'}
+});
+
+const stakeholderCtx = document.getElementById('stakeholderChart').getContext('2d');
+new Chart(stakeholderCtx, {
+    type: 'polarArea',
+    data: {
+        labels: ['دولت','کارشناسان','محیط زیست','مردم محلی','قوه قضائیه'],
+        datasets: [{
+            data:[5,4,3,4,2],
+            backgroundColor:[
+                'rgba(46,90,136,0.7)',
+                'rgba(249,178,8,0.7)',
+                'rgba(28,150,96,0.7)',
+                'rgba(169,92,66,0.7)',
+                'rgba(128,128,128,0.7)'
+            ]
+        }]
+    },
+    options:{responsive:true, maintainAspectRatio:false}
+});
+</script>
+<script src="main.js"></script>
 </body>
 </html>
